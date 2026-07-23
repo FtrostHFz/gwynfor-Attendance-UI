@@ -15,15 +15,24 @@ const YEARS_LIST = Array.from({ length: 21 }, (_, i) => CURRENT_YEAR - 10 + i);
 // ==========================================
 function InlineCalendarTimePicker({ onSave, onCancel }: { onSave: (date: string, time: string, tolerance: string) => void, onCancel: () => void }) {
   const [activeTab, setActiveTab] = useState<"tahun" | "bulan" | "hari">("hari");
-  const today = new Date();
+  
+  // Menggunakan useMemo agar today reference tidak re-render terus menerus, 
+  // namun new Date() di-init saat komponen dipanggil
+  const today = new Date(); 
+  
   const [viewYear, setViewYear] = useState(today.getFullYear());
   const [viewMonth, setViewMonth] = useState(today.getMonth());
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [selectedTime, setSelectedTime] = useState<string>("07:00");
-  const [selectedTolerance, setSelectedTolerance] = useState<string>("00:15"); // State Baru untuk toleransi
+  const [selectedTolerance, setSelectedTolerance] = useState<string>("00:15");
 
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
   const daysList = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+  
+  // Kalkulasi hari pertama bulan ini (0 = Minggu, 1 = Senin, dst)
+  const firstDayOfMonth = new Date(viewYear, viewMonth, 1).getDay();
+  // Membuat array slot kosong untuk menggeser tanggal 1 ke kolom yang tepat
+  const emptySlots = Array.from({ length: firstDayOfMonth }, (_, i) => i);
 
   const handleConfirm = () => {
     if (!selectedDate) return alert("Pilih tanggal terlebih dahulu!");
@@ -36,25 +45,26 @@ function InlineCalendarTimePicker({ onSave, onCancel }: { onSave: (date: string,
     <div className="w-full h-full flex flex-col rounded-3xl bg-zinc-900/60 backdrop-blur-2xl border border-emerald-500/30 p-[clamp(0.8rem,2vw,1.2rem)] shadow-2xl relative overflow-hidden">
       <div className="flex flex-col xl:flex-row justify-between items-center mb-[clamp(0.35rem,1vw,0.8rem)] gap-[clamp(0.5rem,2.3vw,1.3rem)] shrink-0">
         <h3 className="text-[clamp(1rem,2vw,1.5rem)] font-extrabold text-white">Select Date & Time</h3>
-        <div className="flex l flex-row items-center gap-3 w-full xl:w-auto">
+        <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
           {/* Input Waktu */}
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <label className="text-emerald-400 font-bold text-[clamp(0.575rem,1.7vw,1rem)]">Time:</label>
             <input 
-            type="time" 
-            value={selectedTime} 
-            onChange={(e) => setSelectedTime(e.target.value)} 
-            className="flex-1 sm:flex-none bg-zinc-800 border border-zinc-600 rounded-lg px-1 py-0.5 text-white outline-none focus:border-emerald-500 text-[clamp(0.875rem,2vw,1rem)]"
+              type="time" 
+              value={selectedTime} 
+              onChange={(e) => setSelectedTime(e.target.value)} 
+              className="flex-1 sm:flex-none bg-zinc-800 border border-zinc-600 rounded-lg px-1 py-0.5 text-white outline-none focus:border-emerald-500 text-[clamp(0.875rem,2vw,1rem)]"
             />
           </div>
           {/* Input Toleransi Keterlambatan */}
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <label className="text-amber-400 font-bold text-[clamp(0.575rem,1.7vw,1rem)]">Tolerance:</label>
             <input 
-            type="time" 
-            value={selectedTolerance} 
-            onChange={(e) => setSelectedTolerance(e.target.value)} 
-            className="flex-1 sm:flex-none bg-zinc-800 border border-zinc-600 rounded-lg px-1 py-0.5 text-white outline-none focus:border-amber-500 text-[clamp(0.875rem,2vw,1rem)]" />
+              type="time" 
+              value={selectedTolerance} 
+              onChange={(e) => setSelectedTolerance(e.target.value)} 
+              className="flex-1 sm:flex-none bg-zinc-800 border border-zinc-600 rounded-lg px-1 py-0.5 text-white outline-none focus:border-amber-500 text-[clamp(0.875rem,2vw,1rem)]" 
+            />
           </div>
         </div>
       </div>
@@ -80,16 +90,68 @@ function InlineCalendarTimePicker({ onSave, onCancel }: { onSave: (date: string,
           {activeTab === "hari" && (
             <motion.div key="hari" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="p-1">
               <div className="text-center text-zinc-400 font-medium mb-[clamp(0.5rem,2vw,0.75rem)] text-[clamp(0.875rem,2vw,1rem)]">Month: <span className="text-white">{MONTHS_LIST[viewMonth]} {viewYear}</span></div>
+              
+              {/* Header Nama Hari untuk mempertegas tata letak grid */}
+              <div className="grid grid-cols-7 gap-[clamp(0.2rem,1vw,0.5rem)] mb-2">
+                {DAY_NAMES.map((d, i) => (
+                  <div key={d} className={`text-center text-[clamp(0.5rem,1.2vw,0.65rem)] font-extrabold tracking-widest uppercase ${i === 0 ? "text-red-400/80" : "text-zinc-500"}`}>
+                    {d}
+                  </div>
+                ))}
+              </div>
+
               <div className="grid grid-cols-7 gap-[clamp(0.2rem,1vw,0.5rem)]">
+                {/* Render Slot Kosong agar tanggal selaras dengan harinya */}
+                {emptySlots.map((slot) => (
+                  <div key={`empty-${slot}`} className="aspect-square w-full max-w-16 mx-auto" />
+                ))}
+
+                {/* Render Tanggal Aktif */}
                 {daysList.map((day) => {
                   const dateObj = new Date(viewYear, viewMonth, day);
                   const dayName = DAY_NAMES[dateObj.getDay()];
                   const targetStr = `${viewYear}-${(viewMonth + 1).toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
                   
+                  // Evaluasi Kondisi Khusus
+                  const isSelected = selectedDate === targetStr;
+                  const isToday = today.getDate() === day && today.getMonth() === viewMonth && today.getFullYear() === viewYear;
+                  const isSunday = dateObj.getDay() === 0;
+
+                  // Styling Dasar
+                  let buttonClass = "aspect-square w-full max-w-16 flex flex-col mx-auto items-center justify-center rounded-2xl transition-all border ";
+                  let textDayClass = "text-[clamp(0.6rem,1.5vw,0.7rem)] font-bold tracking-widest uppercase ";
+                  let textNumClass = "font-extrabold text-[clamp(0.875rem,2.5vw,1.1rem)] ";
+
+                  if (isSelected) {
+                    // State Dipilih (Hijau - Prioritas Tertinggi)
+                    buttonClass += "bg-emerald-500 text-white scale-110 shadow-[0_0_15px_rgba(16,185,129,0.5)] border-emerald-400 z-10";
+                    textDayClass += "text-emerald-100";
+                  } else {
+                    // Setup Base Styling non-selected
+                    if (isSunday) {
+                      // Hari Minggu (Merah Samar)
+                      buttonClass += "bg-red-500/10 hover:bg-red-500/20 text-red-300 ";
+                      textDayClass += "text-red-500/70 ";
+                      textNumClass += "text-red-400 ";
+                    } else {
+                      // Hari Normal (Default)
+                      buttonClass += "bg-zinc-800/50 hover:bg-zinc-700 text-zinc-400 hover:text-white ";
+                      textDayClass += "text-zinc-500 ";
+                    }
+
+                    // Tumpuk Stroke Ungu jika ini adalah 'Hari Ini' (Today)
+                    if (isToday) {
+                      buttonClass += "border-purple-500 shadow-[0_0_15px_rgba(168,85,247,0.4)] bg-purple-500/5 ";
+                      textNumClass += "!text-purple-300 "; // Override font weight/color specifically for today's number
+                    } else {
+                      buttonClass += "border-transparent hover:border-zinc-500/30 ";
+                    }
+                  }
+
                   return (
-                    <button key={day} onClick={() => setSelectedDate(targetStr)} className={`aspect-square w-full max-w-16 flex flex-col mx-auto items-center justify-center rounded-2xl transition-all ${selectedDate === targetStr ? "bg-emerald-500 text-white scale-110 shadow-[0_0_15px_rgba(16,185,129,0.5)]" : "bg-zinc-800/50 text-zinc-400 hover:bg-zinc-700 hover:text-white"}`}>
-                      <span className={`text-[clamp(0.6rem,1.5vw,0.7rem)] font-bold tracking-widest uppercase ${selectedDate === targetStr ? "text-emerald-100" : "text-zinc-500"}`}>{dayName}</span>
-                      <span className="font-extrabold text-[clamp(0.875rem,2.5vw,1.1rem)]">{day}</span>
+                    <button key={day} onClick={() => setSelectedDate(targetStr)} className={buttonClass}>
+                      <span className={textDayClass}>{dayName}</span>
+                      <span className={textNumClass}>{day}</span>
                     </button>
                   );
                 })}
