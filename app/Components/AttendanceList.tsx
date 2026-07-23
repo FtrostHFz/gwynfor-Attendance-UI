@@ -22,11 +22,11 @@ export default function AttendanceList({ openModal }: { openModal: (data: any) =
   const { students, classesConfig } = useStore();
   const [searchQuery, setSearchQuery] = useState("");
   
-  // State untuk melacak waktu secara real-time
+  // State melacak waktu
   const [currentTime, setCurrentTime] = useState(new Date());
 
   useEffect(() => {
-    // Refresh waktu setiap 1 menit untuk mengkalkulasi lock/keterlambatan secara dinamis
+    // Refresh waktu 1 menit
     const timer = setInterval(() => setCurrentTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
@@ -34,7 +34,7 @@ export default function AttendanceList({ openModal }: { openModal: (data: any) =
   const todayStr = currentTime.toISOString().split("T")[0];
   const currentMins = currentTime.getHours() * 60 + currentTime.getMinutes();
 
-  // Mem-filter dan mengelompokkan siswa per-kelas hanya jika kelas tersebut memiliki jadwal HARI INI
+  // filter siswa per-kelas jika kelas memiliki jadwal HARI INI
   const groupedStudents = useMemo(() => {
     const groups: Record<string, { config: ClassScheduleData; students: StudentData[] }> = {};
 
@@ -100,7 +100,7 @@ export default function AttendanceList({ openModal }: { openModal: (data: any) =
                         </div>
                       </div>
 
-                      {/* Barisan Kotak Jadwal per Jam */}
+                      {/* Kotak Jadwal per Jam */}
                       <div className="relative z-10 flex flex-row flex-wrap gap-2.5 mt-2">
                         {group.config.schedules.map((sched, sIdx) => {
                           const att = student.attendedClasses.Data.find(a => a.tanggal === todayStr && a.jam === sched.time);

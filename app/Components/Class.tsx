@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Hover3DCard } from "./Card";
 import { useStore, StudentData, ClassScheduleData } from "./Variables";
 
-const MONTHS_LIST = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
+const MONTHS_LIST = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]; 
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS_LIST = Array.from({ length: 21 }, (_, i) => CURRENT_YEAR - 10 + i);
@@ -33,19 +33,28 @@ function InlineCalendarTimePicker({ onSave, onCancel }: { onSave: (date: string,
   };
 
   return (
-    <div className="w-full h-full flex flex-col rounded-3xl bg-zinc-900/60 backdrop-blur-2xl border border-emerald-500/30 p-[clamp(1rem,3vw,1.5rem)] shadow-2xl relative overflow-hidden">
-      <div className="flex flex-col xl:flex-row justify-between items-center mb-[clamp(0.75rem,2vw,1.5rem)] gap-[clamp(0.5rem,2vw,1rem)] shrink-0">
-        <h3 className="text-[clamp(1.25rem,4vw,1.5rem)] font-extrabold text-white">Select Date & Time</h3>
-        <div className="flex flex-col sm:flex-row items-center gap-3 w-full xl:w-auto">
+    <div className="w-full h-full flex flex-col rounded-3xl bg-zinc-900/60 backdrop-blur-2xl border border-emerald-500/30 p-[clamp(0.8rem,2vw,1.2rem)] shadow-2xl relative overflow-hidden">
+      <div className="flex flex-col xl:flex-row justify-between items-center mb-[clamp(0.35rem,1vw,0.8rem)] gap-[clamp(0.5rem,2.3vw,1.3rem)] shrink-0">
+        <h3 className="text-[clamp(1rem,2vw,1.5rem)] font-extrabold text-white">Select Date & Time</h3>
+        <div className="flex l flex-row items-center gap-3 w-full xl:w-auto">
           {/* Input Waktu */}
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <label className="text-emerald-400 font-bold text-[clamp(0.875rem,2vw,1rem)]">Time:</label>
-            <input type="time" value={selectedTime} onChange={(e) => setSelectedTime(e.target.value)} className="flex-1 sm:flex-none bg-zinc-800 border border-zinc-600 rounded-lg px-2 py-1.5 text-white outline-none focus:border-emerald-500 text-[clamp(0.875rem,2vw,1rem)]" />
+            <label className="text-emerald-400 font-bold text-[clamp(0.575rem,1.7vw,1rem)]">Time:</label>
+            <input 
+            type="time" 
+            value={selectedTime} 
+            onChange={(e) => setSelectedTime(e.target.value)} 
+            className="flex-1 sm:flex-none bg-zinc-800 border border-zinc-600 rounded-lg px-1 py-0.5 text-white outline-none focus:border-emerald-500 text-[clamp(0.875rem,2vw,1rem)]"
+            />
           </div>
           {/* Input Toleransi Keterlambatan */}
           <div className="flex items-center gap-2 w-full sm:w-auto">
-            <label className="text-amber-400 font-bold text-[clamp(0.875rem,2vw,1rem)]">Tolerance:</label>
-            <input type="time" value={selectedTolerance} onChange={(e) => setSelectedTolerance(e.target.value)} className="flex-1 sm:flex-none bg-zinc-800 border border-zinc-600 rounded-lg px-2 py-1.5 text-white outline-none focus:border-amber-500 text-[clamp(0.875rem,2vw,1rem)]" />
+            <label className="text-amber-400 font-bold text-[clamp(0.575rem,1.7vw,1rem)]">Tolerance:</label>
+            <input 
+            type="time" 
+            value={selectedTolerance} 
+            onChange={(e) => setSelectedTolerance(e.target.value)} 
+            className="flex-1 sm:flex-none bg-zinc-800 border border-zinc-600 rounded-lg px-1 py-0.5 text-white outline-none focus:border-amber-500 text-[clamp(0.875rem,2vw,1rem)]" />
           </div>
         </div>
       </div>
@@ -90,9 +99,9 @@ function InlineCalendarTimePicker({ onSave, onCancel }: { onSave: (date: string,
         </AnimatePresence>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-end gap-[clamp(0.5rem,2vw,0.75rem)] mt-4 pt-4 border-t border-white/10 shrink-0">
-        <button onClick={onCancel} className="w-full sm:w-auto px-[clamp(1rem,3vw,1.5rem)] py-[clamp(0.5rem,2vw,0.75rem)] rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold transition-all text-[clamp(0.875rem,2vw,1rem)]">Cancel</button>
-        <button onClick={handleConfirm} className="w-full sm:w-auto px-[clamp(1rem,3vw,1.5rem)] py-[clamp(0.5rem,2vw,0.75rem)] rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.4)] text-[clamp(0.875rem,2vw,1rem)]">Confirm</button>
+      <div className="flex flex-col sm:flex-row justify-end gap-[clamp(0.5rem,2vw,0.75rem)] mt-[clamp(0.4rem,1.3vw,0.65rem)] pt-[clamp(0.4rem,1.3vw,0.65rem)] border-t border-white/10 shrink-0">
+        <button onClick={onCancel} className="w-full sm:w-auto px-[clamp(1rem,3vw,1.5rem)] py-[clamp(0.5rem,2vw,0.75rem)] rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold transition-all text-[clamp(0.575rem,1.6vw,0.8rem)]">Cancel</button>
+        <button onClick={handleConfirm} className="w-full sm:w-auto px-[clamp(1rem,3vw,1.5rem)] py-[clamp(0.5rem,2vw,0.75rem)] rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.4)] text-[clamp(0.575rem,1.6vw,0.8rem)]">Confirm</button>
       </div>
     </div>
   );
@@ -113,15 +122,11 @@ export function ModalAddClass({ data, closeModal }: { data: any; closeModal: () 
   const [isAddingSchedule, setIsAddingSchedule] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  const handleDragStart = (e: React.DragEvent, studentId: string, source: "available" | "selected") => {
-    e.dataTransfer.setData("studentId", studentId);
-    e.dataTransfer.setData("source", source);
-  };
 
-  const handleDrop = (e: React.DragEvent, target: "available" | "selected") => {
-    e.preventDefault();
-    const studentId = e.dataTransfer.getData("studentId");
-    const source = e.dataTransfer.getData("source");
+  //Siswa Transfer Handler
+
+  const handleTransfer = (studentId: string, source: "available" | "selected", target: "available" | "selected") => {
+
     if (source === target) return;
     if (target === "selected") {
       const student = availableStudents.find((s) => s.id === studentId);
@@ -160,99 +165,185 @@ export function ModalAddClass({ data, closeModal }: { data: any; closeModal: () 
 
   return (
     <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }} onClick={(e) => e.stopPropagation()} className="w-full max-w-5xl h-[95vh] sm:h-[90vh] flex flex-col gap-[clamp(0.5rem,2vw,1.5rem)] relative p-[clamp(0.5rem,2vw,1rem)] bg-zinc-950/40 rounded-4xlrder border-white/5">
-      <div className="w-full shrink-0 rounded-[clamp(1rem,3vw,1.5rem)] bg-zinc-900/60 backdrop-blur-2xl border border-white/10 p-[clamp(1rem,3vw,1.5rem)] shadow-2xl flex flex-col sm:flex-row justify-between items-center gap-[clamp(0.5rem,2vw,1rem)]">
-        <h2 className="text-[clamp(1.25rem,4vw,2rem)] font-extrabold text-white tracking-tight drop-shadow-md text-center">{isEdit ? "Edit Class Info" : "Create New Class"}</h2>
-        <input type="text" placeholder="Class Name (e.g. 10A)" value={className} onChange={(e) => setClassName(e.target.value)} className="w-full sm:w-auto sm:min-w-62.5 bg-zinc-950/80 border-2 border-emerald-500/30 text-emerald-300 placeholder:text-zinc-600 px-[clamp(1rem,2vw,1.5rem)] py-[clamp(0.5rem,2vw,0.75rem)] rounded-xl focus:outline-none focus:border-emerald-500 transition-colors shadow-inner text-center font-bold text-[clamp(0.875rem,2.5vw,1.125rem)]" />
-      </div>
+        <div className="w-full shrink-0 rounded-[clamp(1rem,3vw,1.5rem)] bg-zinc-900/60 backdrop-blur-2xl border border-white/10 p-[clamp(0.6rem,2vw,1.3rem)] shadow-2xl flex flex-col sm:flex-row justify-between items-center gap-[clamp(0.3rem,2vw,1rem)]">
+            <h2 className="text-[clamp(0.9rem,3vw,2.1rem)] font-extrabold text-white tracking-tight drop-shadow-md text-center">{isEdit ? "EDIT CLASS" : "CREATE NEW CLASS"}</h2>
+            <input 
+            type="text" 
+            placeholder="Class Name" 
+            value={className} onChange={(e) => setClassName(e.target.value)} 
+            className="w-full sm:w-auto sm:min-w-62.5 bg-zinc-950/80 border-2 border-emerald-500/30 text-emerald-300 placeholder:text-zinc-600 px-[clamp(1rem,2vw,1.5rem)] py-[clamp(0.5rem,1.5vw,0.75rem)] rounded-xl focus:outline-none focus:border-emerald-500 transition-colors shadow-inner text-center font-bold text-[clamp(0.675rem,1.5vw,0.8rem)]" 
+            />
+        </div>
 
-      <div className="flex-1 min-h-0 w-full flex flex-col">
-        {activeTab === "roster" ? (
-          <div className="flex-1 flex flex-col sm:flex-row gap-[clamp(0.75rem,2vw,1.5rem)] min-h-0">
-            <div className="flex-1 flex flex-col rounded-[clamp(1rem,3vw,1.5rem)] bg-zinc-900/60 backdrop-blur-2xl border border-emerald-500/30 overflow-hidden shadow-2xl min-h-0" onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDrop(e, "selected")}>
-              <div className="bg-emerald-500/10 p-[clamp(0.75rem,2vw,1rem)] border-b border-emerald-500/30 text-center shrink-0">
-                <h3 className="text-emerald-400 font-bold tracking-widest text-[clamp(0.75rem,1.5vw,0.875rem)]">{isEdit ? "EDIT ROSTER" : "CLASS ROSTER"} ({selectedStudents.length})</h3>
-                <p className="text-[clamp(0.6rem,1.5vw,0.75rem)] text-zinc-400 mt-1">Drag students here to add</p>
-              </div>
-              <div className="flex-1 p-[clamp(0.5rem,2vw,1rem)] overflow-y-auto custom-scrollbar flex flex-col gap-2 relative min-h-0">
-                {selectedStudents.map(student => (
-                  <div key={student.id} draggable onDragStart={(e) => handleDragStart(e, student.id, "selected")} className="p-[clamp(0.75rem,2vw,1rem)] rounded-xl bg-zinc-800/80 border border-zinc-600 cursor-grab active:cursor-grabbing hover:bg-zinc-700 transition-colors flex justify-between items-center shadow-lg">
-                    <span className="font-bold text-white text-[clamp(0.875rem,2vw,1rem)]">{student.name}</span>
-                    <span className="text-[clamp(0.65rem,1.5vw,0.75rem)] text-zinc-400 font-mono">{student.id}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
+            {/* Roster - Draggable Students */} 
+            
 
-            <div className="flex-1 flex flex-col rounded-[clamp(1rem,3vw,1.5rem)] bg-zinc-900/60 backdrop-blur-2xl border border-white/10 overflow-hidden shadow-2xl min-h-0" onDragOver={(e) => e.preventDefault()} onDrop={(e) => handleDrop(e, "available")}>
-              <div className="bg-zinc-800/50 p-[clamp(0.75rem,2vw,1rem)] border-b border-white/10 text-center shrink-0">
-                <h3 className="text-zinc-300 font-bold tracking-widest text-[clamp(0.75rem,1.5vw,0.875rem)]">AVAILABLE STUDENTS</h3>
-                <p className="text-[clamp(0.6rem,1.5vw,0.75rem)] text-zinc-500 mt-1">Drag students left to assign</p>
-              </div>
-              <div className="flex-1 p-[clamp(0.5rem,2vw,1rem)] overflow-y-auto custom-scrollbar flex flex-col gap-2 min-h-0">
-                {availableStudents.map(student => (
-                  <div key={student.id} draggable onDragStart={(e) => handleDragStart(e, student.id, "available")} className="p-[clamp(0.75rem,2vw,1rem)] rounded-xl bg-zinc-800/40 border border-zinc-700/50 cursor-grab active:cursor-grabbing hover:bg-zinc-700 transition-colors flex justify-between items-center shadow-md">
-                    <div>
-                      <span className="font-bold text-zinc-200 block text-[clamp(0.875rem,2vw,1rem)]">{student.name}</span>
-                      <span className="text-[clamp(0.65rem,1.5vw,0.75rem)] text-zinc-500 block">Current Class: {student.kelas || "None"}</span>
+        <div className="flex-1 min-h-0 w-full flex flex-col">
+            {activeTab === "roster" ? (
+            <div className="flex-1 flex flex-col sm:flex-row gap-[clamp(0.75rem,2vw,1.5rem)] min-h-0">
+                
+                {/* Class Roster */}
+
+                <div
+                className="flex-1 flex flex-col rounded-[clamp(1rem,3vw,1.5rem)] bg-zinc-900/60 backdrop-blur-2xl border border-emerald-500/30 overflow-hidden shadow-2xl min-h-0">
+                <div className="bg-emerald-500/10 p-[clamp(0.35rem,1vw,0.7rem)] border-b border-emerald-500/30 text-center shrink-0">
+                    <h3 className="text-emerald-400 font-bold tracking-widest text-[clamp(0.75rem,1.5vw,0.875rem)]">
+                        {isEdit ? "EDIT ROSTER" : "CLASS ROSTER"} ({selectedStudents.length})
+                    </h3>
+                    <p className="text-[clamp(0.6rem,1.5vw,0.75rem)] text-zinc-400 mt-1">
+                        click student to dismiss
+                    </p>
+                </div>
+                <div className="flex-1 p-[clamp(0.5rem,2vw,1rem)] overflow-y-auto custom-scrollbar flex flex-col gap-2 relative min-h-0">
+                    {selectedStudents.map(student => (
+                    <div 
+                    key={student.id}
+                    onClick={() => {handleTransfer(student.id, "selected", "available");}}
+                    className="p-[clamp(0.75rem,2vw,1rem)] rounded-xl bg-zinc-800/80 border border-zinc-600 cursor-pointer hover:bg-zinc-700 transition-colors flex justify-between items-center shadow-lg"
+                    >
+                        <span className="font-bold text-white text-[clamp(0.875rem,2vw,1rem)]">
+                            {student.name}
+                        </span>
+                        <span className="text-[clamp(0.65rem,1.5vw,0.75rem)] text-zinc-400 font-mono">
+                            {student.id}
+                        </span>
                     </div>
-                    <span className="text-[clamp(0.65rem,1.5vw,0.75rem)] text-zinc-600 font-mono">{student.id}</span>
-                  </div>
-                ))}
-              </div>
+                    ))}
+                </div>
+                </div>
+
+                {/* Available Students */}
+
+                <div 
+                className="flex-1 flex flex-col rounded-[clamp(1rem,3vw,1.5rem)] bg-zinc-900/60 backdrop-blur-2xl border border-white/10 overflow-hidden shadow-2xl min-h-0">
+                <div className="bg-zinc-800/50 p-[clamp(0.35rem,1vw,0.7rem)] border-b border-white/10 text-center shrink-0">
+                    <h3 className="text-zinc-300 font-bold tracking-widest text-[clamp(0.75rem,1.5vw,0.875rem)]">
+                        AVAILABLE STUDENTS
+                    </h3>
+                    <p className="text-[clamp(0.6rem,1.5vw,0.75rem)] text-zinc-500 mt-1">
+                        click student to assign
+                    </p>
+                </div>
+                <div className="flex-1 p-[clamp(0.5rem,2vw,1rem)] overflow-y-auto custom-scrollbar flex flex-col gap-2 min-h-0">
+                    {availableStudents.map(student => (
+                    <div 
+                    key={student.id} 
+                    onClick={() => {handleTransfer(student.id, "available", "selected");}}
+                    className="p-[clamp(0.75rem,2vw,1rem)] rounded-xl bg-zinc-800/40 border border-zinc-700/50 cursor-pointer hover:bg-zinc-700 transition-colors flex justify-between items-center shadow-md"
+                    >
+                        <div>
+                            <span className="font-bold text-zinc-200 block text-[clamp(0.875rem,2vw,1rem)]">
+                                {student.name}
+                            </span>
+                            <span className="text-[clamp(0.65rem,1.5vw,0.75rem)] text-zinc-500 block">
+                                Current Class: {student.kelas || "None"}
+                            </span>
+                        </div>
+                        <span className="text-[clamp(0.65rem,1.5vw,0.75rem)] text-zinc-600 font-mono">
+                            {student.id}
+                        </span>
+                    </div>
+                    ))}
+                </div>
+                </div>
             </div>
-          </div>
-        ) : (
-          <div className="flex-1 flex flex-col items-center justify-center min-h-0">
-             {isAddingSchedule ? (
-               <InlineCalendarTimePicker onSave={addSchedule} onCancel={() => setIsAddingSchedule(false)} />
-             ) : (
-               <div className="w-full h-full flex flex-col rounded-[clamp(1rem,3vw,1.5rem)] bg-zinc-900/60 backdrop-blur-2xl border border-blue-500/30 p-[clamp(1rem,3vw,1.5rem)] shadow-2xl overflow-hidden min-h-0">
-                 <div className="flex flex-col sm:flex-row justify-between items-center mb-[clamp(0.75rem,2vw,1.5rem)] gap-[clamp(0.5rem,2vw,1rem)] shrink-0">
-                    <h3 className="text-[clamp(1.125rem,3vw,1.5rem)] font-extrabold text-blue-400">Class Schedule</h3>
-                    <button onClick={() => setIsAddingSchedule(true)} className="w-full sm:w-auto px-[clamp(1rem,3vw,1.25rem)] py-[clamp(0.5rem,2vw,0.75rem)] rounded-xl bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 font-bold border border-blue-500/50 transition-all text-[clamp(0.875rem,2vw,1rem)]">+ ADD SCHEDULE</button>
-                 </div>
-                 
-                 <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-[clamp(0.5rem,1.5vw,1rem)] min-h-0">
-                   {schedules.map((sched, idx) => (
-                     <div key={idx} className="flex justify-between items-center p-[clamp(0.75rem,2vw,1.25rem)] rounded-2xl bg-zinc-800/80 border border-zinc-700 shadow-md">
-                       <div className="flex flex-col">
-                         <span className="text-white font-extrabold text-[clamp(1rem,2.5vw,1.125rem)]">{sched.time}</span>
-                         <span className="text-zinc-400 font-medium text-[clamp(0.75rem,2vw,0.875rem)]">{sched.date} &bull; <span className="text-amber-400 text-xs">Tol: {sched.tolerance}</span></span>
-                       </div>
-                       <button onClick={() => removeSchedule(idx)} className="w-[clamp(2rem,6vw,2.5rem)] aspect-square rounded-full flex items-center justify-center text-zinc-500 hover:bg-red-500/20 hover:text-red-400 transition-all font-bold text-[clamp(1rem,3vw,1.25rem)]">✕</button>
-                     </div>
-                   ))}
-                 </div>
-               </div>
-             )}
-          </div>
-        )}
-      </div>
-
-      <div className="relative shrink-0 w-full rounded-[clamp(1rem,3vw,1.5rem)] bg-zinc-900/60 backdrop-blur-2xl border border-white/10 p-[clamp(0.75rem,3vw,1.25rem)] shadow-2xl flex flex-col sm:flex-row justify-between items-center gap-[clamp(0.75rem,2vw,1rem)]">
-        <AnimatePresence>
-          {confirmDelete && (
-            <motion.div initial={{ opacity: 0, y: 20, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 20, scale: 0.9 }} className="absolute bottom-[110%] w-80 p-5 rounded-2xl bg-zinc-900/90 backdrop-blur-2xl border border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.7)] flex flex-col items-center gap-4 z-50 left-0 sm:left-4">
-              <h3 className="text-white font-bold capitalize">Confirm Delete</h3>
-              <p className="text-sm text-red-400 text-center">Are you sure you want to delete this class?</p>
-              <div className="flex gap-3 w-full">
-                <button onClick={() => setConfirmDelete(false)} className="flex-1 py-2 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-white font-medium transition-all">Cancel</button>
-                <button onClick={handleDelete} className="flex-1 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold transition-all shadow-[0_0_15px_rgba(239,68,68,0.4)]">Confirm</button>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-
-        <div className="flex flex-row gap-3 w-full sm:w-auto">
-          <button onClick={closeModal} className="w-full sm:w-auto px-[clamp(1rem,4vw,2rem)] py-[clamp(0.75rem,2vw,1rem)] rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 font-bold transition-all text-[clamp(0.875rem,2.5vw,1rem)] border border-transparent hover:border-zinc-700">Cancel</button>
-          {isEdit && <button onClick={() => setConfirmDelete(true)} className="w-full sm:w-auto px-[clamp(1rem,2vw,1.5rem)] py-[clamp(0.75rem,2vw,1rem)] rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold transition-all text-[clamp(0.875rem,2.5vw,1rem)]">Delete Class</button>}
+            ) : (
+            <div className="flex-1 flex flex-col items-center justify-center min-h-0">
+                {isAddingSchedule ? (
+                <InlineCalendarTimePicker onSave={addSchedule} onCancel={() => setIsAddingSchedule(false)} />
+                ) : (
+                <div className="w-full h-full flex flex-col rounded-[clamp(1rem,3vw,1.5rem)] bg-zinc-900/60 backdrop-blur-2xl border border-blue-500/30 p-[clamp(1rem,3vw,1.5rem)] shadow-2xl overflow-hidden min-h-0">
+                    <div className="flex flex-col sm:flex-row justify-between items-center mb-[clamp(0.75rem,2vw,1.5rem)] gap-[clamp(0.5rem,2vw,1rem)] shrink-0">
+                        <h3 className="text-[clamp(1.125rem,3vw,1.5rem)] font-extrabold text-blue-400">Class Schedule</h3>
+                        <button onClick={() => setIsAddingSchedule(true)} className="w-full sm:w-auto px-[clamp(1rem,3vw,1.25rem)] py-[clamp(0.5rem,2vw,0.75rem)] rounded-xl bg-blue-600/20 hover:bg-blue-600/40 text-blue-300 font-bold border border-blue-500/50 transition-all text-[clamp(0.875rem,2vw,1rem)]">+ ADD SCHEDULE</button>
+                    </div>
+                    
+                    <div className="flex-1 overflow-y-auto custom-scrollbar flex flex-col gap-[clamp(0.5rem,1.5vw,1rem)] min-h-0">
+                    {schedules.map((sched, idx) => (
+                        <div key={idx} className="flex justify-between items-center p-[clamp(0.75rem,2vw,1.25rem)] rounded-2xl bg-zinc-800/80 border border-zinc-700 shadow-md">
+                        <div className="flex flex-col">
+                            <span className="text-white font-extrabold text-[clamp(1rem,2.5vw,1.125rem)]">{sched.time}</span>
+                            <span className="text-zinc-400 font-medium text-[clamp(0.75rem,2vw,0.875rem)]">{sched.date} &bull; <span className="text-amber-400 text-xs">Tol: {sched.tolerance}</span></span>
+                        </div>
+                        <button onClick={() => removeSchedule(idx)} className="w-[clamp(2rem,6vw,2.5rem)] aspect-square rounded-full flex items-center justify-center text-zinc-500 hover:bg-red-500/20 hover:text-red-400 transition-all font-bold text-[clamp(1rem,3vw,1.25rem)]">✕</button>
+                        </div>
+                    ))}
+                    </div>
+                </div>
+                )}
+            </div>
+            )}
         </div>
 
-        <div className="flex flex-col sm:flex-row gap-[clamp(0.5rem,2vw,1rem)] w-full sm:w-auto">
-          <button onClick={() => setActiveTab(activeTab === "roster" ? "schedule" : "roster")} className="w-full sm:w-auto px-[clamp(1rem,3vw,2rem)] py-[clamp(0.75rem,2vw,1rem)] rounded-xl bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 font-bold transition-all border border-blue-500/30 text-[clamp(0.875rem,2.5vw,1rem)]">{activeTab === "roster" ? "Insert Schedule" : "Back to Roster"}</button>
-          <button onClick={handleSave} className="w-full sm:w-auto px-[clamp(1.25rem,4vw,2.5rem)] py-[clamp(0.75rem,2vw,1rem)] rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold transition-all shadow-[0_0_20px_rgba(16,185,129,0.4)] tracking-widest text-[clamp(0.875rem,2.5vw,1rem)]">{isEdit ? "SAVE CHANGES" : "CREATE CLASS"}</button>
+        <div className="relative shrink-0 w-full rounded-[clamp(1rem,3vw,1.5rem)] bg-zinc-900/60 backdrop-blur-2xl border border-white/10 p-[clamp(0.45rem,1.2vh,0.7rem)] shadow-2xl flex flex-col sm:flex-row justify-between items-center gap-[clamp(0.75rem,2vw,1rem)]">
+            <AnimatePresence>
+            {confirmDelete && (
+                <motion.div 
+                initial={{ opacity: 0, y: 20, scale: 0.9 }} 
+                animate={{ opacity: 1, y: 0, scale: 1 }} 
+                exit={{ opacity: 0, y: 20, scale: 0.9 }} 
+                className="absolute bottom-[110%] w-80 p-1.5 rounded-2xl bg-zinc-900/90 backdrop-blur-2xl border border-white/20 shadow-[0_20px_40px_rgba(0,0,0,0.7)] flex flex-col items-center gap-1.5 z-50 sm:left-4"
+                >
+                    <h3 className="text-white font-bold capitalize">Confirm Delete</h3>
+                    <p className="text-sm text-red-400 text-center">Are you sure you want to delete this class?</p>
+                    <div className="flex gap-2 w-full">
+                        
+                        <button 
+                        onClick={() => setConfirmDelete(false)} 
+                        className="flex-1 py-2 rounded-lg bg-zinc-700 hover:bg-zinc-600 text-white font-medium transition-all"
+                        >
+                            Cancel
+                        </button>
+
+                        <button 
+                        onClick={handleDelete} 
+                        className="flex-1 py-2 rounded-lg bg-red-600 hover:bg-red-500 text-white font-bold transition-all shadow-[0_0_15px_rgba(239,68,68,0.4)]"
+                        >
+                            Confirm
+                        </button>
+
+                    </div>
+                </motion.div>
+            )}
+            </AnimatePresence>
+
+            <div className="flex flex-row gap-2 w-full sm:w-auto">
+
+                <button 
+                onClick={closeModal} 
+                className="w-full sm:w-auto px-[clamp(0.5rem,3vw,2rem)] py-[clamp(0.5rem,1.5vh,1rem)] rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 font-bold transition-all text-[clamp(0.75rem,2.5vw,1rem)] border border-transparent hover:border-zinc-700"
+                >
+                    Cancel
+                </button>
+
+                {isEdit && 
+                    <button 
+                    onClick={() => setConfirmDelete(true)} 
+                    className="w-full sm:w-auto px-[clamp(0.5rem,3vw,2rem)] py-[clamp(0.5rem,1vh,0.8rem)] rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold transition-all text-[clamp(0.6575rem,2.5vw,1rem)]"
+                    >
+                        Delete Class
+                    </button>}
+            
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-[clamp(0.35rem,1vh,0.7rem)] w-full sm:w-auto">
+
+            <button 
+            onClick={() => setActiveTab(activeTab === "roster" ? "schedule" : "roster")} 
+            className="w-full sm:w-auto px-[clamp(0.5rem,3vw,2rem)] py-[clamp(0.5rem,1vh,0.8rem)] rounded-xl bg-blue-600/10 hover:bg-blue-600/20 text-blue-400 font-bold transition-all border border-blue-500/30 text-[clamp(0.6575rem,2.5vw,1rem)]"
+            >
+                {activeTab === "roster" ? "Insert Schedule" : "Back to Roster"}
+            </button>
+            
+            <button 
+            onClick={handleSave} 
+            className="w-full sm:w-auto px-[clamp(0.5rem,3vw,2rem)] py-[clamp(0.5rem,1vh,0.8rem)] rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold transition-all shadow-[0_0_20px_rgba(16,185,129,0.4)] tracking-widest text-[clamp(0.6575rem,2.5vw,1rem)]"
+            >
+                {isEdit ? "SAVE CHANGES" : "CREATE CLASS"}
+            </button>
+
+            </div>
         </div>
-      </div>
     </motion.div>
   );
 }
