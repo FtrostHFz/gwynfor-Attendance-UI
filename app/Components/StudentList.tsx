@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import CardSiswa, { Hover3DCard } from "./Card";
 import { useStore, StudentData } from "./Variables";
 
-// modal add murid
+// modal untuk add data ke siswa baru
 export function ModalAddStudent({ closeModal }: { closeModal: () => void }) {
   const { classesConfig, addStudent } = useStore();
   const [scannedCard, setScannedCard] = useState<string | null>(null);
@@ -19,10 +19,10 @@ export function ModalAddStudent({ closeModal }: { closeModal: () => void }) {
 
     const newStudent: StudentData = {
       id: scannedCard,
+      Kartu: Date.now() % 1000000, 
       name: studentName,
       kelas: selectedClass,
-      attendedClasses: { Data: [] },
-      latestAttendance: []
+      attendedClasses: { Data: [] }
     };
 
     addStudent(newStudent);
@@ -160,11 +160,12 @@ export function ModalAddStudent({ closeModal }: { closeModal: () => void }) {
                             {cls.className}
                           </span>
                           <div className={`w-[clamp(1.5rem,3vw,2rem)] h-[clamp(1.5rem,3vw,2rem)] rounded-full border-2 flex items-center justify-center transition-all ${isSelected ? 'border-emerald-500 bg-emerald-500' : 'border-zinc-600 bg-transparent'}`}>
-                            {isSelected && 
-                            <svg className="w-[clamp(0.75rem,1.5vw,1rem)] h-[clamp(0.75rem,1.5vw,1rem)] text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7">
-                              </path>
-                            </svg>}
+                            {isSelected && (
+                              <svg className="w-[clamp(0.75rem,1.5vw,1rem)] h-[clamp(0.75rem,1.5vw,1rem)] text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7">
+                                </path>
+                              </svg>
+                            )}
                           </div>
                         </div>
                     </Hover3DCard>
@@ -224,7 +225,33 @@ export function ModalAddStudent({ closeModal }: { closeModal: () => void }) {
   );
 }
 
-// modal profil
+// ngubah time jadi min buat komparasi di array (buat bantu evaluasi absensi)
+const parseTimeToMinutes = (timeStr: string) => {
+  if (!timeStr) return 0;
+  const [hours, minutes] = timeStr.split(":").map(Number);
+  return hours * 60 + minutes;
+};
+
+// fungsi inti evaluasi status: valid (2), telat (1), atau hangus/bolos (0)
+const evaluateAttendanceStatus = (scans: {jam: string}[], fromTime: string, toTime: string) => {
+  const fromMins = parseTimeToMinutes(fromTime);
+  const toMins = parseTimeToMinutes(toTime);
+
+  // prioritas cari record valid (masuk range from..to)
+  const onTime = scans.find(s => {
+    const m = parseTimeToMinutes(s.jam);
+    return m >= fromMins && m <= toMins;
+  });
+  if (onTime) return 2;
+
+  // kalo record valid ga nemu, baru cek record telat (> to)
+  const late = scans.find(s => parseTimeToMinutes(s.jam) > toMins);
+  if (late) return 1;
+
+  return 0; // bolong
+};
+
+// modal tampilan profil & riwayat siswa
 export function ModalProfilSiswa({ data, closeModal }: { data: any; closeModal: () => void }) {
   const { students, classesConfig, updateStudentName, resetStudentData, deleteStudent } = useStore();
   
@@ -236,17 +263,21 @@ export function ModalProfilSiswa({ data, closeModal }: { data: any; closeModal: 
   const [confirmAction, setConfirmAction] = useState<"edit" | "delete" | "reset" | null>(null);
   const [editName, setEditName] = useState(student.name);
 
-  const matchedAttendancesOnTime = classSchedules.filter(sched => 
-    attendedData.some(a => a.tanggal === sched.date && a.jam === sched.time && a.status !== "terlambat")
-  ).length;
+  // ngitung statistik on-time cuma buat status === 2
+  const matchedAttendancesOnTime = classSchedules.filter(sched => {
+    const scansForDate = attendedData.filter(a => a.tanggal === sched.date);
+    return evaluateAttendanceStatus(scansForDate, sched.timeFrom, sched.timeTo) === 2;
+  }).length;
+  
   const totalSchedules = classSchedules.length;
   const percentage = totalSchedules > 0 ? Math.round((matchedAttendancesOnTime / totalSchedules) * 100) : 0;
 
+  // ngelompokin jadwal harian (ditampilin pake indikator `timeTo`)
   const groupedSchedules = classSchedules.reduce((acc, sched) => {
     if (!acc[sched.date]) acc[sched.date] = [];
-    acc[sched.date].push(sched.time);
+    acc[sched.date].push(sched); 
     return acc;
-  }, {} as Record<string, string[]>);
+  }, {} as Record<string, {timeFrom: string, timeTo: string}[]>);
 
   const handleConfirm = () => {
     if (confirmAction === "edit") updateStudentName(student.id, editName);
@@ -291,13 +322,17 @@ export function ModalProfilSiswa({ data, closeModal }: { data: any; closeModal: 
 
                 ID: {student.id}
               </span>
+              <span className="text-zinc-400 font-mono text-sm tracking-widest">
+
+                No Kartu: {student.Kartu}
+              </span>
             </div>
           </div>
         </Hover3DCard>
 
         <Hover3DCard 
           maxTilt={30} 
-          className="rounded-[2.5rem] aspect-173/110 w-full bg-zinc-900/60 backdrop-blur-xl border  border-white/20 shadow-[0_15px_30px_rgba(0,0,0,0.5)] flex items-center justify-center"
+          className="rounded-[2.5rem] aspect-173/110 w-full bg-zinc-900/60 backdrop-blur-xl border border-white/20 shadow-[0_15px_30px_rgba(0,0,0,0.5)] flex items-center justify-center"
         >
           <div>
 
@@ -308,18 +343,18 @@ export function ModalProfilSiswa({ data, closeModal }: { data: any; closeModal: 
 
       <div className="w-full flex flex-wrap justify-center gap-4 my-8 ">
         {Object.keys(groupedSchedules).length > 0 ? (
-          Object.entries(groupedSchedules).map(([date, times], idx) => {
+          Object.entries(groupedSchedules).map(([date, scheds], idx) => {
             let onTimeCount = 0;
             let lateCount = 0;
+            
+            const scansForDate = attendedData.filter(a => a.tanggal === date);
 
-            const timeNodes = times.map((time, i) => {
-              const att = attendedData.find(a => a.tanggal === date && a.jam === time);
+            const timeNodes = scheds.map((sched, i) => {
+              const status = evaluateAttendanceStatus(scansForDate, sched.timeFrom, sched.timeTo);
               let boxState = 'empty';
               
-              if (att) {
-                if (att.status === "terlambat") { boxState = 'late'; lateCount++; } 
-                else { boxState = 'onTime'; onTimeCount++; }
-              }
+              if (status === 2) { boxState = 'onTime'; onTimeCount++; }
+              else if (status === 1) { boxState = 'late'; lateCount++; }
 
               const style = boxState === 'onTime'
                 ? 'bg-emerald-500/20 border-emerald-500/50 text-emerald-300 shadow-[inset_0_0_8px_rgba(16,185,129,0.4),0_0_10px_rgba(16,185,129,0.2)]'
@@ -330,14 +365,14 @@ export function ModalProfilSiswa({ data, closeModal }: { data: any; closeModal: 
               return (
                 <div key={i} className={`w-full py-1.5 px-3 rounded-lg backdrop-blur-md border text-center text-xs font-bold transition-all ${style}`}>
 
-                  {time}
+                  {sched.timeTo}
                 </div>
               );
             });
 
             let cardState = 'empty';
-            if (lateCount > 0) cardState = (lateCount === times.length) ? 'red' : 'yellow';
-            else if (onTimeCount > 0) cardState = (onTimeCount === times.length) ? 'green' : 'yellow';
+            if (lateCount > 0) cardState = (lateCount === scheds.length) ? 'red' : 'yellow';
+            else if (onTimeCount > 0) cardState = (onTimeCount === scheds.length) ? 'green' : 'yellow';
 
             const cardStyle = cardState === 'green'
               ? 'bg-emerald-500/10 border-emerald-500/40 shadow-[0_0_15px_rgba(52,211,153,0.2)]'
@@ -482,7 +517,7 @@ export function ModalProfilSiswa({ data, closeModal }: { data: any; closeModal: 
   );
 }
 
-// komponen utama list siswa
+// komponen pembungkus roster data murid 
 interface StudentListProps {
   openModal: (data: any) => void;
 }

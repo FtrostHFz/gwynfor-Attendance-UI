@@ -15,7 +15,7 @@ export default function Home() {
   const openModal = (data: any) => setModalData(data);
   const closeModal = () => setModalData(null);
 
-  // data buat render tab navigasi
+  // array tab navigasi
   const NAV_TABS = [
     { id: 1, label: "Student List" },
     { id: 2, label: "Class" },
@@ -45,7 +45,13 @@ export default function Home() {
 
       <div className="hidden sm:block absolute ml-[clamp(1rem,5vw,4rem)] mt-[clamp(1rem,1.5vw,2rem)] min-h-[3vh] min-w-[6vw] max-h-[10vw] max-w-[15vw] h-full w-[15vw]">
         <div className="w-full h-full flex items-center justify-center">
-          <Image src="/GF_Logo.png" alt="GF Logo" width={200} height={200} className="w-full h-full object-contain origin-center"/>
+          <Image 
+            src="/GF_Logo.png" 
+            alt="GF Logo" 
+            width={200} 
+            height={200} 
+            className="w-full h-full object-contain origin-center"
+          />
         </div>
       </div>
 

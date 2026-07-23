@@ -5,14 +5,33 @@ import { motion } from "framer-motion";
 import { Hover3DCard } from "./Card";
 import { useStore, StudentData, ClassScheduleData } from "./Variables";
 
-// ubah format jam ke menit buat komparasi
+// ubah jam teks ("HH:mm") jadi menit bulat buat komparasi logika matematika
 const parseTimeToMinutes = (timeStr: string) => {
   if (!timeStr) return 0;
   const [hours, minutes] = timeStr.split(":").map(Number);
   return hours * 60 + minutes;
 };
 
-// komponen utama attendance harian
+// fungsi evaluasi scan per sesi / bongkaran dari UI
+const evaluateAttendanceForSlot = (scans: {jam: string}[], fromTime: string, toTime: string) => {
+  const fromMins = parseTimeToMinutes(fromTime);
+  const toMins = parseTimeToMinutes(toTime);
+
+  // prioritas cari yang masuk range time (mengunci status)
+  const onTime = scans.find(s => {
+    const m = parseTimeToMinutes(s.jam);
+    return m >= fromMins && m <= toMins;
+  });
+  if (onTime) return { status: 2, jam: onTime.jam };
+
+  // kalo ngga nemu, baru cek kalau telat / over dari limit TO
+  const late = scans.find(s => parseTimeToMinutes(s.jam) > toMins);
+  if (late) return { status: 1, jam: late.jam };
+
+  // sisa kondisi = sebelum waktu (ignore) atau bolong
+  return { status: 0, jam: "-" };
+};
+
 export default function AttendanceList({ openModal }: { openModal: (data: any) => void }) {
   const { students, classesConfig } = useStore();
   const [searchQuery, setSearchQuery] = useState("");
@@ -27,7 +46,6 @@ export default function AttendanceList({ openModal }: { openModal: (data: any) =
   const todayStr = currentTime.toISOString().split("T")[0];
   const currentMins = currentTime.getHours() * 60 + currentTime.getMinutes();
 
-  // filter murid berdasarkan jadwal hari ini
   const groupedStudents = useMemo(() => {
     const groups: Record<string, { config: ClassScheduleData; students: StudentData[] }> = {};
 
@@ -103,28 +121,32 @@ export default function AttendanceList({ openModal }: { openModal: (data: any) =
 
                       <div className="relative z-10 flex flex-row flex-wrap gap-2.5 mt-2">
                         {group.config.schedules.map((sched, sIdx) => {
-                          const att = student.attendedClasses.Data.find(a => a.tanggal === todayStr && a.jam === sched.time);
                           
-                          const limitMins = parseTimeToMinutes(sched.time) + parseTimeToMinutes(sched.tolerance);
-                          const isLocked = !att && currentMins > limitMins;
+                          // bongkar scan anak hari ini & evaluasi berdasar jam kelas
+                          const scansToday = student.attendedClasses.Data.filter(a => a.tanggal === todayStr);
+                          const result = evaluateAttendanceForSlot(scansToday, sched.timeFrom, sched.timeTo);
+                          
+                          const limitMins = parseTimeToMinutes(sched.timeTo);
+                          const isLocked = (result.status === 0) && (currentMins > limitMins);
 
-                          const boxStyle = att ? "bg-emerald-500/20 border-emerald-500/50 shadow-[inset_0_0_8px_rgba(16,185,129,0.3)]" 
-                            : isLocked 
+                          const boxStyle = result.status === 2
+                            ? "bg-emerald-500/20 border-emerald-500/50 shadow-[inset_0_0_8px_rgba(16,185,129,0.3)]" 
+                            : (result.status === 1 || isLocked)
                             ? "bg-red-500/20 border-red-500/50 shadow-[inset_0_0_8px_rgba(239,68,68,0.3)] opacity-80" 
                             : "bg-zinc-800/40 border-zinc-700/50";
                           
-                          const titleColor = att ? "text-emerald-400" : isLocked ? "text-red-400" : "text-zinc-400";
-                          const valueColor = att ? "text-emerald-100" : isLocked ? "text-red-200" : "text-zinc-500";
+                          const titleColor = result.status === 2 ? "text-emerald-400" : (result.status === 1 || isLocked) ? "text-red-400" : "text-zinc-400";
+                          const valueColor = result.status === 2 ? "text-emerald-100" : (result.status === 1 || isLocked) ? "text-red-200" : "text-zinc-500";
 
                           return (
                             <div key={sIdx} className={`flex-1 min-w-17.5 flex flex-col items-center justify-center py-2 px-2 rounded-xl border transition-all ${boxStyle}`}>
                               <span className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${titleColor}`}>
 
-                                {sched.time}
+                                {sched.timeTo}
                               </span>
                               <span className={`text-sm font-extrabold font-mono ${valueColor}`}>
 
-                                {att ? att.jam : "-"}
+                                {result.jam}
                               </span>
                             </div>
                           );

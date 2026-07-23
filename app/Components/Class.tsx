@@ -10,16 +10,16 @@ const DAY_NAMES = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const CURRENT_YEAR = new Date().getFullYear();
 const YEARS_LIST = Array.from({ length: 21 }, (_, i) => CURRENT_YEAR - 10 + i);
 
-// time picker kalender 
-function InlineCalendarTimePicker({ onSave, onCancel }: { onSave: (date: string, time: string, tolerance: string) => void, onCancel: () => void }) {
+// kalender buat nentuin from - to absensi
+function InlineCalendarTimePicker({ onSave, onCancel }: { onSave: (date: string, timeFrom: string, timeTo: string) => void, onCancel: () => void }) {
   const [activeTab, setActiveTab] = useState<"tahun" | "bulan" | "hari">("hari");
   
   const today = new Date(); 
   const [viewYear, setViewYear] = useState(today.getFullYear());
   const [viewMonth, setViewMonth] = useState(today.getMonth());
   const [selectedDate, setSelectedDate] = useState<string>("");
-  const [selectedTime, setSelectedTime] = useState<string>("07:00");
-  const [selectedTolerance, setSelectedTolerance] = useState<string>("00:15");
+  const [selectedTimeFrom, setSelectedTimeFrom] = useState<string>("07:00");
+  const [selectedTimeTo, setSelectedTimeTo] = useState<string>("07:30");
 
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
   const daysList = Array.from({ length: daysInMonth }, (_, i) => i + 1);
@@ -28,9 +28,13 @@ function InlineCalendarTimePicker({ onSave, onCancel }: { onSave: (date: string,
 
   const handleConfirm = () => {
     if (!selectedDate) return alert("Pilih tanggal terlebih dahulu!");
-    if (!selectedTime) return alert("Masukkan jam terlebih dahulu!");
-    if (!selectedTolerance) return alert("Masukkan toleransi terlebih dahulu!");
-    onSave(selectedDate, selectedTime, selectedTolerance);
+    if (!selectedTimeFrom) return alert("Masukkan jam buka (From)!");
+    if (!selectedTimeTo) return alert("Masukkan jam tutup (To)!");
+    
+    // validasi bentrok to > from
+    if (selectedTimeFrom > selectedTimeTo) return alert("Jam From tidak boleh lebih besar dari jam To!");
+    
+    onSave(selectedDate, selectedTimeFrom, selectedTimeTo);
   };
 
   return (
@@ -44,24 +48,24 @@ function InlineCalendarTimePicker({ onSave, onCancel }: { onSave: (date: string,
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <label className="text-emerald-400 font-bold text-[clamp(0.575rem,1.7vw,1rem)]">
 
-              Time:
+              From:
             </label>
             <input 
               type="time" 
-              value={selectedTime} 
-              onChange={(e) => setSelectedTime(e.target.value)} 
+              value={selectedTimeFrom} 
+              onChange={(e) => setSelectedTimeFrom(e.target.value)} 
               className="flex-1 sm:flex-none bg-zinc-800 border border-zinc-600 rounded-lg px-1 py-0.5 text-white outline-none focus:border-emerald-500 text-[clamp(0.875rem,2vw,1rem)]"
             />
           </div>
           <div className="flex items-center gap-2 w-full sm:w-auto">
             <label className="text-amber-400 font-bold text-[clamp(0.575rem,1.7vw,1rem)]">
 
-              Tolerance:
+              To:
             </label>
             <input 
               type="time" 
-              value={selectedTolerance} 
-              onChange={(e) => setSelectedTolerance(e.target.value)} 
+              value={selectedTimeTo} 
+              onChange={(e) => setSelectedTimeTo(e.target.value)} 
               className="flex-1 sm:flex-none bg-zinc-800 border border-zinc-600 rounded-lg px-1 py-0.5 text-white outline-none focus:border-amber-500 text-[clamp(0.875rem,2vw,1rem)]" 
             />
           </div>
@@ -186,11 +190,17 @@ function InlineCalendarTimePicker({ onSave, onCancel }: { onSave: (date: string,
       </div>
 
       <div className="flex flex-col sm:flex-row justify-end gap-[clamp(0.5rem,2vw,0.75rem)] mt-[clamp(0.4rem,1.3vw,0.65rem)] pt-[clamp(0.4rem,1.3vw,0.65rem)] border-t border-white/10 shrink-0">
-        <button onClick={onCancel} className="w-full sm:w-auto px-[clamp(1rem,3vw,1.5rem)] py-[clamp(0.5rem,2vw,0.75rem)] rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold transition-all text-[clamp(0.575rem,1.6vw,0.8rem)]">
+        <button 
+          onClick={onCancel} 
+          className="w-full sm:w-auto px-[clamp(1rem,3vw,1.5rem)] py-[clamp(0.5rem,2vw,0.75rem)] rounded-xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold transition-all text-[clamp(0.575rem,1.6vw,0.8rem)]"
+        >
 
           Cancel
         </button>
-        <button onClick={handleConfirm} className="w-full sm:w-auto px-[clamp(1rem,3vw,1.5rem)] py-[clamp(0.5rem,2vw,0.75rem)] rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.4)] text-[clamp(0.575rem,1.6vw,0.8rem)]">
+        <button 
+          onClick={handleConfirm} 
+          className="w-full sm:w-auto px-[clamp(1rem,3vw,1.5rem)] py-[clamp(0.5rem,2vw,0.75rem)] rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold transition-all shadow-[0_0_15px_rgba(16,185,129,0.4)] text-[clamp(0.575rem,1.6vw,0.8rem)]"
+        >
 
           Confirm
         </button>
@@ -199,7 +209,7 @@ function InlineCalendarTimePicker({ onSave, onCancel }: { onSave: (date: string,
   );
 }
 
-// modal nambah kelas 
+// modal kelola kelas dan anggotanya
 export function ModalAddClass({ data, closeModal }: { data: any; closeModal: () => void }) {
   const { students, saveNewClass, deleteClass } = useStore();
   const isEdit = data.isEdit || false;
@@ -211,11 +221,11 @@ export function ModalAddClass({ data, closeModal }: { data: any; closeModal: () 
   const [availableStudents, setAvailableStudents] = useState<StudentData[]>(initialAvailable);
   const [selectedStudents, setSelectedStudents] = useState<StudentData[]>(initialSelected);
   const [activeTab, setActiveTab] = useState<"roster" | "schedule">("roster");
-  const [schedules, setSchedules] = useState<{date: string, time: string, tolerance: string}[]>(data.initialSchedules || []);
+  const [schedules, setSchedules] = useState<{date: string, timeFrom: string, timeTo: string}[]>(data.initialSchedules || []);
   const [isAddingSchedule, setIsAddingSchedule] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
 
-  // ngatur perpindahan data murid 
+  // logic transfer anggota kelas
   const handleTransfer = (studentId: string, source: "available" | "selected", target: "available" | "selected") => {
     if (source === target) return;
     if (target === "selected") {
@@ -233,12 +243,13 @@ export function ModalAddClass({ data, closeModal }: { data: any; closeModal: () 
     }
   };
 
-  const addSchedule = (date: string, time: string, tolerance: string) => {
-    const newSchedules = [...schedules, { date, time, tolerance }];
-    newSchedules.sort((a, b) => new Date(`${a.date}T${a.time}`).getTime() - new Date(`${b.date}T${b.time}`).getTime());
+  const addSchedule = (date: string, timeFrom: string, timeTo: string) => {
+    const newSchedules = [...schedules, { date, timeFrom, timeTo }];
+    newSchedules.sort((a, b) => new Date(`${a.date}T${a.timeFrom}`).getTime() - new Date(`${b.date}T${b.timeFrom}`).getTime());
     setSchedules(newSchedules);
     setIsAddingSchedule(false);
   };
+  
   const removeSchedule = (idxToRemove: number) => setSchedules(schedules.filter((_, idx) => idx !== idxToRemove));
 
   const handleSave = () => {
@@ -254,7 +265,14 @@ export function ModalAddClass({ data, closeModal }: { data: any; closeModal: () 
   };
 
   return (
-    <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.95 }} transition={{ duration: 0.3 }} onClick={(e) => e.stopPropagation()} className="w-full max-w-5xl h-[95vh] sm:h-[90vh] flex flex-col gap-[clamp(0.5rem,2vw,1.5rem)] relative p-[clamp(0.5rem,2vw,1rem)] bg-zinc-950/40 rounded-4xl border border-white/5">
+    <motion.div 
+      initial={{ opacity: 0, scale: 0.95 }} 
+      animate={{ opacity: 1, scale: 1 }} 
+      exit={{ opacity: 0, scale: 0.95 }} 
+      transition={{ duration: 0.3 }} 
+      onClick={(e) => e.stopPropagation()} 
+      className="w-full max-w-5xl h-[95vh] sm:h-[90vh] flex flex-col gap-[clamp(0.5rem,2vw,1.5rem)] relative p-[clamp(0.5rem,2vw,1rem)] bg-zinc-950/40 rounded-4xl border border-white/5"
+    >
         <div className="w-full shrink-0 rounded-[clamp(1rem,3vw,1.5rem)] bg-zinc-900/60 backdrop-blur-2xl border border-white/10 p-[clamp(0.6rem,2vw,1.3rem)] shadow-2xl flex flex-col sm:flex-row justify-between items-center gap-[clamp(0.3rem,2vw,1rem)]">
             <h2 className="text-[clamp(0.9rem,3vw,2.1rem)] font-extrabold text-white tracking-tight drop-shadow-md text-center">
 
@@ -367,11 +385,11 @@ export function ModalAddClass({ data, closeModal }: { data: any; closeModal: () 
                         <div className="flex flex-col">
                             <span className="text-white font-extrabold text-[clamp(1rem,2.5vw,1.125rem)]">
 
-                              {sched.time}
+                              {sched.timeFrom} - {sched.timeTo}
                             </span>
                             <span className="text-zinc-400 font-medium text-[clamp(0.75rem,2vw,0.875rem)]">
 
-                              {sched.date} &bull; <span className="text-amber-400 text-xs">Tol: {sched.tolerance}</span>
+                              {sched.date}
                             </span>
                         </div>
                         <button 
@@ -440,14 +458,15 @@ export function ModalAddClass({ data, closeModal }: { data: any; closeModal: () 
                     Cancel
                 </button>
 
-                {isEdit && 
+                {isEdit && (
                     <button 
                       onClick={() => setConfirmDelete(true)} 
                       className="w-full sm:w-auto px-[clamp(0.5rem,3vw,2rem)] py-[clamp(0.5rem,1vh,0.8rem)] rounded-xl bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 font-bold transition-all text-[clamp(0.6575rem,2.5vw,1rem)]"
                     >
 
                         Delete Class
-                    </button>}
+                    </button>
+                )}
             
             </div>
 
@@ -477,8 +496,17 @@ export function ModalAddClass({ data, closeModal }: { data: any; closeModal: () 
 
 function CardClassGroup({ group, idx, members, schedulesCount, onClick }: { group: ClassScheduleData, idx: number, members: StudentData[], schedulesCount: number, onClick: () => void }) {
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.1 }} className="w-full h-full">
-      <Hover3DCard maxTilt={8} onClick={onClick} className="rounded-3xl bg-[#09090b]/80 backdrop-blur-xl border border-white/10 p-[clamp(1rem,3vw,1.5rem)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_10px_20px_rgba(0,0,0,0.5)] flex flex-col gap-4 cursor-pointer hover:border-white/20 hover:shadow-2xl active:scale-95 active:bg-amber-300/10 h-full">
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }} 
+      animate={{ opacity: 1, y: 0 }} 
+      transition={{ delay: idx * 0.1 }} 
+      className="w-full h-full"
+    >
+      <Hover3DCard 
+        maxTilt={8} 
+        onClick={onClick} 
+        className="rounded-3xl bg-[#09090b]/80 backdrop-blur-xl border border-white/10 p-[clamp(1rem,3vw,1.5rem)] shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_10px_20px_rgba(0,0,0,0.5)] flex flex-col gap-4 cursor-pointer hover:border-white/20 hover:shadow-2xl active:scale-95 active:bg-amber-300/10 h-full"
+      >
         <div className="relative z-10 flex flex-col gap-1 items-start">
           <h4 className="text-[clamp(1.5rem,4vw,2.25rem)] font-extrabold text-white tracking-tight drop-shadow-md">
 
