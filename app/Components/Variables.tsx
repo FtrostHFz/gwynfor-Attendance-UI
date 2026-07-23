@@ -1,8 +1,6 @@
 import { create } from 'zustand';
 
-// ==========================================
-// 1. INTERFACES (Fleksibel & Dinamis)
-// ==========================================
+// tipe interface data
 export interface attendedClassesArrayITF {
   tanggal: string;
   jam: string;
@@ -27,9 +25,7 @@ export interface ClassScheduleData {
   [key: string]: any; 
 }
 
-// ==========================================
-// 2. INITIAL DUMMY DATA (NFC Card IDs)
-// ==========================================
+// data dummy awal
 const today = new Date().toISOString().split("T")[0];
 
 const initialDummyStudents: StudentData[] = [
@@ -49,16 +45,14 @@ const initialClasses: ClassScheduleData[] = [
   { className: "10C", schedules: [] }
 ];
 
-// ==========================================
-// 3. ZUSTAND STORE
-// ==========================================
+// zustand store state
 interface StoreState {
   students: StudentData[];
   classesConfig: ClassScheduleData[];
   deleteStudent: (id: string) => void;
   updateStudentName: (id: string, newName: string) => void;
   resetStudentData: (id: string) => void;
-  addStudent: (newStudent: StudentData) => void; // Menambahkan fungsi Add Student
+  addStudent: (newStudent: StudentData) => void;
   saveNewClass: (oldClassName: string | undefined, newClassName: string, assignedStudentIds: string[], schedules: { date: string, time: string, tolerance: string }[]) => void;
   deleteClass: (classNameToDelete: string) => void;
 }
@@ -71,7 +65,6 @@ export const useStore = create<StoreState>((set) => ({
   updateStudentName: (id, newName) => set((state) => ({ students: state.students.map((student) => student.id === id ? { ...student, name: newName } : student) })),
   resetStudentData: (id) => set((state) => ({ students: state.students.map((student) => student.id === id ? { ...student, attendedClasses: { Data: [] }, latestAttendance: [] } : student) })),
   
-  // Fungsi baru untuk push data siswa ke state
   addStudent: (newStudent) => set((state) => ({ students: [...state.students, newStudent] })),
 
   saveNewClass: (oldClassName, newClassName, assignedStudentIds, schedules) => set((state) => {
