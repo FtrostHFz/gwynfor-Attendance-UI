@@ -2,8 +2,9 @@
 
 import { useState, useRef, MouseEvent } from "react";
 import { motion } from "framer-motion";
+import { CARD_TEMPLATES } from "./Variables";
 
-// base 3d glare effect
+// base komponen card 3d
 export function Hover3DCard({ children, className = "", maxTilt = 12, onClick }: { children: React.ReactNode; className?: string; maxTilt?: number; onClick?: () => void; }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
@@ -40,52 +41,58 @@ export function Hover3DCard({ children, className = "", maxTilt = 12, onClick }:
       className={`relative overflow-hidden transition-all ${isHovering ? "duration-75 ease-out" : "duration-500 ease-out"} ${className}`}
     >
       {children}
-      <div className={`pointer-events-none absolute inset-0 z-20 transition-opacity ${isHovering ? "opacity-100 duration-75" : "opacity-0 duration-500"}`} style={{ background: glareStyle }} />
+      <div 
+        className={`pointer-events-none absolute inset-0 z-20 transition-opacity ${isHovering ? "opacity-100 duration-75" : "opacity-0 duration-500"}`} 
+        style={{ background: glareStyle }} 
+      />
     </div>
   );
 }
 
-// parsing jam ke bentuk menit biar gampang ngecek intervalnya
+// parsing string ke menit untuk fungsi matematis absensi
 const parseTimeToMinutes = (timeStr: string) => {
   if (!timeStr) return 0;
   const [hours, minutes] = timeStr.split(":").map(Number);
   return hours * 60 + minutes;
 };
 
-// fungsi pengunci status / ngecek validitas tap kartu
+// fungsi evaluasi prioritas presensi dari bongkaran array
+// jika ada yang masuk range -> 2 (ngunci)
+// jika lolos tapi ada yang telat -> 1
+// selain itu -> 0
 const evaluateAttendance = (scans: {jam: string}[], fromTime: string, toTime: string) => {
   const fromMins = parseTimeToMinutes(fromTime);
   const toMins = parseTimeToMinutes(toTime);
 
-  // prioritas 1: cari yang tepat waktu dulu (status 2 ngunci)
   const onTime = scans.find(s => {
     const m = parseTimeToMinutes(s.jam);
     return m >= fromMins && m <= toMins;
   });
   if (onTime) return 2;
 
-  // prioritas 2: kalo ga ketemu, cari yang tap telat (status 1)
   const late = scans.find(s => parseTimeToMinutes(s.jam) > toMins);
   if (late) return 1;
 
-  // ga ada yang masuk rentang alias bolong (status 0)
-  return 0;
+  return 0; 
 };
 
 export interface CardSiswaProps {
   name: string;
   id: string;
   kelas: string;
+  kartuId: number;
   classSchedules: { date: string, timeFrom: string, timeTo: string }[];
   attendedData: { tanggal: string, jam: string, status?: number }[];
   onClick?: () => void;
 }
 
-export default function CardSiswa({ name, id, kelas, classSchedules, attendedData, onClick }: CardSiswaProps) {
+// render kartu roster siswa
+export default function CardSiswa({ name, id, kelas, kartuId, classSchedules, attendedData, onClick }: CardSiswaProps) {
   
+  const bgImage = CARD_TEMPLATES[kartuId]?.H || "/London1H.png";
+
   const uniqueDays = Array.from(new Set(classSchedules?.map(s => s.date) || [])).sort();
   
-  // bikin dot indicator 
   const dots = uniqueDays.map(date => {
      const sessionsOnDay = classSchedules.filter(s => s.date === date);
      const scansToday = attendedData.filter(a => a.tanggal === date);
@@ -109,8 +116,6 @@ export default function CardSiswa({ name, id, kelas, classSchedules, attendedDat
   });
 
   const totalSchedules = classSchedules?.length || 0;
-  
-  // hitung yang on time aja (status === 2) buat percentage
   const matchedAttendancesOnTime = classSchedules?.filter(sched => {
     const scansToday = attendedData.filter(a => a.tanggal === sched.date);
     return evaluateAttendance(scansToday, sched.timeFrom, sched.timeTo) === 2;
@@ -129,8 +134,16 @@ export default function CardSiswa({ name, id, kelas, classSchedules, attendedDat
       <Hover3DCard 
         maxTilt={12} 
         onClick={onClick} 
-        className="rounded-2xl bg-[#09090b]/80 border border-white/10 p-5 cursor-pointer shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_10px_20px_rgba(0,0,0,0.5)] active:scale-95 active:bg-amber-300/50 duration-100"
+        className="rounded-2xl border border-white/10 cursor-pointer shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_10px_20px_rgba(0,0,0,0.5)] active:scale-95 duration-100 overflow-hidden relative group p-5"
       >
+        
+        {/* render aset kartu sebagai background full dengan efek overlay gelap */}
+        <div 
+          className="absolute inset-0 bg-cover bg-center z-0 opacity-80 transition-transform duration-700" 
+          style={{ backgroundImage: `url(${bgImage})` }} 
+        />
+        <div className="absolute inset-0 bg-linear-to-t from-[#09090b] via-[#09090b]/80 to-[#09090b]/50 z-0" />
+
         <div className="relative z-10 flex flex-col gap-2">
           <div>
             <h4 className="text-xl font-extrabold text-zinc-100 tracking-tight drop-shadow-sm">
@@ -138,12 +151,12 @@ export default function CardSiswa({ name, id, kelas, classSchedules, attendedDat
               {name}
             </h4>
             <div className="flex items-center gap-2 mt-1.5 mb-1">
-              <span className="px-2 py-0.5 rounded-md bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 font-medium">
+              <span className="px-2 py-0.5 rounded-md bg-zinc-800/80 backdrop-blur-sm border border-zinc-600 text-xs text-zinc-200 font-medium">
 
                 {kelas}
               </span>
             </div>
-            <p className="text-xs text-zinc-500 font-mono tracking-wider">
+            <p className="text-xs text-zinc-400 font-mono tracking-wider drop-shadow-md">
 
               ID: {id}
             </p>
@@ -161,7 +174,7 @@ export default function CardSiswa({ name, id, kelas, classSchedules, attendedDat
                 }`} 
               />
             )) : (
-              <span className="text-[10px] text-zinc-600 italic">
+              <span className="text-[10px] text-zinc-500 italic font-medium">
 
                 No schedules set
               </span>
@@ -169,13 +182,13 @@ export default function CardSiswa({ name, id, kelas, classSchedules, attendedDat
           </div>
 
           <div className="mt-4 flex flex-col gap-2.5">
-            <div className="relative w-full h-5 bg-zinc-900/80 rounded-full overflow-hidden border border-white/5 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]">
+            <div className="relative w-full h-5 bg-zinc-950/80 rounded-full overflow-hidden border border-white/10 shadow-[inset_0_2px_4px_rgba(0,0,0,0.5)]">
               <div className="absolute top-0 left-0 h-full transition-all duration-1000 ease-out" style={{ width: `${percentage}%` }}>
-                <div className="absolute inset-0 bg-emerald-600 rounded-l-full overflow-hidden shadow-[inset_0_0_10px_rgba(16,185,129,0.8)]" />
+                <div className="absolute inset-0 bg-emerald-500 rounded-l-full overflow-hidden shadow-[inset_0_0_10px_rgba(16,185,129,0.8)]" />
               </div>
             </div>
             <div className="flex justify-between items-center px-1">
-              <span className="text-[10px] text-zinc-400 font-bold uppercase tracking-[0.25em]">
+              <span className="text-[10px] text-zinc-300 font-bold uppercase tracking-[0.25em]">
 
                 Attendance Rate
               </span>

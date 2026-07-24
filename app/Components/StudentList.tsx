@@ -3,11 +3,11 @@
 import { useState, useMemo } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import CardSiswa, { Hover3DCard } from "./Card";
-import { useStore, StudentData } from "./Variables";
+import { useStore, StudentData, CARD_TEMPLATES } from "./Variables";
 
 // modal untuk add data ke siswa baru
 export function ModalAddStudent({ closeModal }: { closeModal: () => void }) {
-  const { classesConfig, addStudent } = useStore();
+  const { classesConfig, addStudent, showAlert } = useStore();
   const [scannedCard, setScannedCard] = useState<string | null>(null);
   const [studentName, setStudentName] = useState("");
   const [selectedClass, setSelectedClass] = useState<string>("");
@@ -15,11 +15,13 @@ export function ModalAddStudent({ closeModal }: { closeModal: () => void }) {
 
   const handleAdd = () => {
     if (!scannedCard) return;
-    if (!studentName.trim()) return alert("Please enter the student's name!");
+    
+    // memanggil custom alert saat nama kosong
+    if (!studentName.trim()) return showAlert("Please enter the student's name!");
 
     const newStudent: StudentData = {
       id: scannedCard,
-      Kartu: Date.now() % 1000000, 
+      Kartu: Math.floor(Math.random() * 5) + 1, 
       name: studentName,
       kelas: selectedClass,
       attendedClasses: { Data: [] }
@@ -225,30 +227,28 @@ export function ModalAddStudent({ closeModal }: { closeModal: () => void }) {
   );
 }
 
-// ngubah time jadi min buat komparasi di array (buat bantu evaluasi absensi)
+// parsing komparasi waktu jadi menit
 const parseTimeToMinutes = (timeStr: string) => {
   if (!timeStr) return 0;
   const [hours, minutes] = timeStr.split(":").map(Number);
   return hours * 60 + minutes;
 };
 
-// fungsi inti evaluasi status: valid (2), telat (1), atau hangus/bolos (0)
+// fungsi checker validitas absen (0=bolong, 1=telat, 2=valid)
 const evaluateAttendanceStatus = (scans: {jam: string}[], fromTime: string, toTime: string) => {
   const fromMins = parseTimeToMinutes(fromTime);
   const toMins = parseTimeToMinutes(toTime);
 
-  // prioritas cari record valid (masuk range from..to)
   const onTime = scans.find(s => {
     const m = parseTimeToMinutes(s.jam);
     return m >= fromMins && m <= toMins;
   });
   if (onTime) return 2;
 
-  // kalo record valid ga nemu, baru cek record telat (> to)
   const late = scans.find(s => parseTimeToMinutes(s.jam) > toMins);
   if (late) return 1;
 
-  return 0; // bolong
+  return 0; 
 };
 
 // modal tampilan profil & riwayat siswa
@@ -263,7 +263,9 @@ export function ModalProfilSiswa({ data, closeModal }: { data: any; closeModal: 
   const [confirmAction, setConfirmAction] = useState<"edit" | "delete" | "reset" | null>(null);
   const [editName, setEditName] = useState(student.name);
 
-  // ngitung statistik on-time cuma buat status === 2
+  // set render mockup background profil
+  const mockupImage = CARD_TEMPLATES[student.Kartu]?.H || "/London1H.png";
+
   const matchedAttendancesOnTime = classSchedules.filter(sched => {
     const scansForDate = attendedData.filter(a => a.tanggal === sched.date);
     return evaluateAttendanceStatus(scansForDate, sched.timeFrom, sched.timeTo) === 2;
@@ -272,7 +274,6 @@ export function ModalProfilSiswa({ data, closeModal }: { data: any; closeModal: 
   const totalSchedules = classSchedules.length;
   const percentage = totalSchedules > 0 ? Math.round((matchedAttendancesOnTime / totalSchedules) * 100) : 0;
 
-  // ngelompokin jadwal harian (ditampilin pake indikator `timeTo`)
   const groupedSchedules = classSchedules.reduce((acc, sched) => {
     if (!acc[sched.date]) acc[sched.date] = [];
     acc[sched.date].push(sched); 
@@ -322,22 +323,19 @@ export function ModalProfilSiswa({ data, closeModal }: { data: any; closeModal: 
 
                 ID: {student.id}
               </span>
-              <span className="text-zinc-400 font-mono text-sm tracking-widest">
-
-                No Kartu: {student.Kartu}
-              </span>
             </div>
           </div>
         </Hover3DCard>
 
+        {/* mockup display fisik kartu tanpa filter overlay */}
         <Hover3DCard 
           maxTilt={30} 
-          className="rounded-[2.5rem] aspect-173/110 w-full bg-zinc-900/60 backdrop-blur-xl border border-white/20 shadow-[0_15px_30px_rgba(0,0,0,0.5)] flex items-center justify-center"
+          className="rounded-[2.5rem] aspect-173/110 w-full bg-zinc-900/60 backdrop-blur-xl border border-white/20 shadow-[0_15px_30px_rgba(0,0,0,0.5)] flex items-center justify-center relative overflow-hidden group"
         >
-          <div>
-
-            xxx
-          </div>
+          <div 
+            className="absolute inset-0 bg-cover bg-center transition-transform duration-500" 
+            style={{ backgroundImage: `url(${mockupImage})` }} 
+          />
         </Hover3DCard>
       </div>
 
@@ -517,7 +515,7 @@ export function ModalProfilSiswa({ data, closeModal }: { data: any; closeModal: 
   );
 }
 
-// komponen pembungkus roster data murid 
+// komponen list roster 
 interface StudentListProps {
   openModal: (data: any) => void;
 }
@@ -563,19 +561,21 @@ export default function StudentList({ openModal }: StudentListProps) {
           placeholder="Search name or ID..." 
           value={searchQuery} 
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="bg-zinc-800 text-zinc-400 placeholder:text-zinc-500 border border-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-2xl px-4 py-2 text-sm w-full sm:w-auto grow max-w-md transition-all" 
+          className="bg-fuchsia-900/20 text-zinc-400 placeholder:text-zinc-500 border border-zinc-600 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-2xl px-4 py-2 text-sm w-full sm:w-auto grow max-w-md transition-all shadow-[inset_4px_8px_25px_5px_rgba(30,5,30,1)]" 
         />
 
         <div className="flex gap-2 w-full sm:w-auto">
           <button 
             onClick={() => openModal({ modalType: "add_student" })} 
-            className="px-5 py-2 w-full sm:w-auto bg-white/10 hover:bg-white/20 text-white rounded-lg text-sm font-medium transition-colors border border-white/5"
+            className="px-5 py-2 w-full sm:w-auto bg-linear-to-br from-fuchsia-800 to-black/30 hover:bg-white/50 text-white rounded-2xl text-sm font-medium transition-colors border-[0.5px] border-zinc-200/10 active:scale-95"
           >
 
             + Add Student
           </button>
         </div>
       </div>
+
+      {/* Class Group */}
 
       <div className="w-full h-full flex flex-col gap-8">
         {Object.keys(groupedStudents.groups).length > 0 || groupedStudents.unassigned.length > 0 ? (
@@ -585,21 +585,24 @@ export default function StudentList({ openModal }: StudentListProps) {
               const classSchedules = classConfig?.schedules || [];
 
               return (
-                <div key={kelas} className="w-full p-6 rounded-4xl bg-zinc-900/40 backdrop-blur-xl border border-white/10 shadow-[0_10px_30px_rgba(0,0,0,0.2)] flex flex-col gap-6">
-                  <div className="w-max px-5 py-2 rounded-xl bg-zinc-800/80 backdrop-blur-md border border-zinc-700/80 shadow-inner">
+                <div key={kelas} className="w-full p-6 rounded-4xl from-fuchsia-950/60 to-black/40 bg-linear-to-br backdrop-blur-xl border border-zinc-200/10 shadow-[0_10px_30px_rgba(0,0,0,0.2)] flex flex-col gap-6">
+                  <div className="w-max px-5 py-2 rounded-3xl from-fuchsia-600/50 to-black/30 bg-linear-175 backdrop-blur-md border  border-zinc-200/10 shadow-[inset_5px_5px_20px_rgba(200,20,200,0.2)]">
                     <h4 className="text-zinc-300 font-bold tracking-widest text-[clamp(0.6rem,2.5vw,1.2rem)] uppercase">
 
                       Class: <span className="text-emerald-400 ml-1">{kelas}</span>
                     </h4>
                   </div>
                   
-                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5 auto-rows-max">
+                  {/* Filtered Class Group */}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 auto-rows-max">
                     {studentGroup.map((siswa) => (
                       <CardSiswa 
                         key={siswa.id} 
                         name={siswa.name} 
                         id={siswa.id} 
                         kelas={siswa.kelas} 
+                        kartuId={siswa.Kartu}
                         classSchedules={classSchedules}
                         attendedData={siswa.attendedClasses.Data}
                         onClick={() => openModal({ modalType: 1, ...siswa })} 
@@ -610,8 +613,10 @@ export default function StudentList({ openModal }: StudentListProps) {
               );
             })}
             
+            {/* Unasigned Class Group */}
+
             {groupedStudents.unassigned.length > 0 && (
-              <div className="w-full p-6 rounded-4xl bg-zinc-900/40 backdrop-blur-xl border border-red-500/20 shadow-[0_10px_30px_rgba(0,0,0,0.2)] flex flex-col gap-6">
+              <div className="w-full p-6 rounded-4xl from-fuchsia-950/60 to-black/40 bg-linear-to-br backdrop-blur-xl border border-red-500/20 shadow-[0_10px_30px_rgba(0,0,0,0.2)] flex flex-col gap-6">
                  <div className="w-max px-5 py-2 rounded-xl bg-red-950/40 backdrop-blur-md border border-red-900/50 shadow-inner">
                     <h4 className="text-red-400 font-bold tracking-widest text-[clamp(0.6rem,2.5vw,1.2rem)] uppercase truncate">
 
@@ -619,13 +624,14 @@ export default function StudentList({ openModal }: StudentListProps) {
                     </h4>
                  </div>
                  
-                 <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-5 auto-rows-max">
+                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 auto-rows-max">
                     {groupedStudents.unassigned.map((siswa) => (
                       <CardSiswa 
                         key={siswa.id} 
                         name={siswa.name} 
                         id={siswa.id} 
                         kelas={siswa.kelas} 
+                        kartuId={siswa.Kartu}
                         classSchedules={[]} 
                         attendedData={siswa.attendedClasses.Data} 
                         onClick={() => openModal({ modalType: 1, ...siswa })} 

@@ -1,10 +1,18 @@
 import { create } from 'zustand';
 
+// mapping desain aset kartu fisik untuk UI background (H = Landscape, V = Vertical)
+export const CARD_TEMPLATES: Record<number, { H: string, V: string }> = {
+  1: { H: "/London1H.png", V: "/London1V.png" },
+  2: { H: "/London2H.png", V: "/London2V.png" },
+  3: { H: "/NYH.png", V: "/NYV.png" },
+  4: { H: "/SFH.png", V: "/SFV.png" },
+  5: { H: "/SydneyH.png", V: "/SydneyV.png" },
+};
+
 // struktur data attendance record
 export interface attendedClassesArrayITF {
   tanggal: string;
   jam: string;
-  // 0 = invalid/belum, 1 = telat, 2 = hadir
   status?: number; 
   [key: string]: any; 
 }
@@ -28,16 +36,16 @@ export interface ClassScheduleData {
 
 const today = new Date().toISOString().split("T")[0];
 
-// inisiasi data dummy siswa
+// inisiasi data dummy siswa dengan assignment ID kartu 1-5
 const initialDummyStudents: StudentData[] = [
-  { id: "04:A1:B2:C3:D4:E5", Kartu: 123456, name: "Abyan Hafizh Cahyo", kelas: "10A", attendedClasses: { Data: [{ tanggal: today, jam: "07:15", status: 2 }] } },
-  { id: "1A:2B:3C:4D:5E:6F", Kartu: 654321, name: "Alwan", kelas: "10A", attendedClasses: { Data: [{ tanggal: today, jam: "08:10", status: 1 }] } }, 
-  { id: "F9:E8:D7:C6:B5:A4", Kartu: 112233, name: "Budi Santoso", kelas: "10B", attendedClasses: { Data: [{ tanggal: "2026-07-21", jam: "06:55", status: 2 }, { tanggal: "2026-07-21", jam: "14:10", status: 1 }] } },
-  { id: "88:77:66:55:44:33", Kartu: 445566, name: "Citra Kirana", kelas: "10B", attendedClasses: { Data: [] } },
-  { id: "AA:BB:CC:DD:EE:FF", Kartu: 998877, name: "Dewi Lestari", kelas: "10A", attendedClasses: { Data: [] } },
-  { id: "11:22:33:44:55:66", Kartu: 332211, name: "Eka Putra", kelas: "10C", attendedClasses: { Data: [] } },
-  { id: "99:88:77:66:55:44", Kartu: 778899, name: "Fajar Nugraha", kelas: "", attendedClasses: { Data: [] } }, 
-  { id: "22:44:66:88:AA:CC", Kartu: 556677, name: "Gita Gutawa", kelas: "", attendedClasses: { Data: [] } }  
+  { id: "04:A1:B2:C3:D4:E5", Kartu: 1, name: "Abyan Hafizh Cahyo", kelas: "10A", attendedClasses: { Data: [{ tanggal: today, jam: "07:15", status: 2 }] } },
+  { id: "1A:2B:3C:4D:5E:6F", Kartu: 2, name: "Alwan", kelas: "10A", attendedClasses: { Data: [{ tanggal: today, jam: "08:10", status: 1 }] } }, 
+  { id: "F9:E8:D7:C6:B5:A4", Kartu: 3, name: "Budi Santoso", kelas: "10B", attendedClasses: { Data: [{ tanggal: "2026-07-21", jam: "06:55", status: 2 }, { tanggal: "2026-07-21", jam: "14:10", status: 1 }] } },
+  { id: "88:77:66:55:44:33", Kartu: 4, name: "Citra Kirana", kelas: "10B", attendedClasses: { Data: [] } },
+  { id: "AA:BB:CC:DD:EE:FF", Kartu: 5, name: "Dewi Lestari", kelas: "10A", attendedClasses: { Data: [] } },
+  { id: "11:22:33:44:55:66", Kartu: 1, name: "Eka Putra", kelas: "10C", attendedClasses: { Data: [] } },
+  { id: "99:88:77:66:55:44", Kartu: 2, name: "Fajar Nugraha", kelas: "", attendedClasses: { Data: [] } }, 
+  { id: "22:44:66:88:AA:CC", Kartu: 3, name: "Gita Gutawa", kelas: "", attendedClasses: { Data: [] } }  
 ];
 
 // inisiasi konfigurasi kelas awal
@@ -51,6 +59,12 @@ const initialClasses: ClassScheduleData[] = [
 interface StoreState {
   students: StudentData[];
   classesConfig: ClassScheduleData[];
+  
+  // state popup alert
+  alertData: { message: string, id: number } | null;
+  showAlert: (message: string) => void;
+  hideAlert: (id: number) => void;
+
   deleteStudent: (id: string) => void;
   updateStudentName: (id: string, newName: string) => void;
   resetStudentData: (id: string) => void;
@@ -62,6 +76,17 @@ interface StoreState {
 export const useStore = create<StoreState>((set) => ({
   students: initialDummyStudents,
   classesConfig: initialClasses,
+  alertData: null,
+
+  // fungsi manggil dan nutup custom alert
+  showAlert: (message) => {
+    const id = Date.now();
+    set({ alertData: { message, id } });
+    setTimeout(() => {
+      set((state) => (state.alertData?.id === id ? { alertData: null } : state));
+    }, 3000);
+  },
+  hideAlert: (id) => set((state) => (state.alertData?.id === id ? { alertData: null } : state)),
 
   deleteStudent: (studentId) => set((state) => ({ students: state.students.filter((student) => student.id !== studentId) })),
   updateStudentName: (id, newName) => set((state) => ({ students: state.students.map((student) => student.id === id ? { ...student, name: newName } : student) })),

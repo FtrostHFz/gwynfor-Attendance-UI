@@ -3,35 +3,34 @@
 import { useState, useMemo, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Hover3DCard } from "./Card";
-import { useStore, StudentData, ClassScheduleData } from "./Variables";
+import { useStore, StudentData, ClassScheduleData, CARD_TEMPLATES } from "./Variables";
 
-// ubah jam teks ("HH:mm") jadi menit bulat buat komparasi logika matematika
+// ubah jam jadi menit agar evaluasi bisa menggunakan logika perbandingan matematika
 const parseTimeToMinutes = (timeStr: string) => {
   if (!timeStr) return 0;
   const [hours, minutes] = timeStr.split(":").map(Number);
   return hours * 60 + minutes;
 };
 
-// fungsi evaluasi scan per sesi / bongkaran dari UI
+// pembacaan rentang waktu absen dan validasi data absensi
+// prioritas status 2 mengunci data
 const evaluateAttendanceForSlot = (scans: {jam: string}[], fromTime: string, toTime: string) => {
   const fromMins = parseTimeToMinutes(fromTime);
   const toMins = parseTimeToMinutes(toTime);
 
-  // prioritas cari yang masuk range time (mengunci status)
   const onTime = scans.find(s => {
     const m = parseTimeToMinutes(s.jam);
     return m >= fromMins && m <= toMins;
   });
   if (onTime) return { status: 2, jam: onTime.jam };
 
-  // kalo ngga nemu, baru cek kalau telat / over dari limit TO
   const late = scans.find(s => parseTimeToMinutes(s.jam) > toMins);
   if (late) return { status: 1, jam: late.jam };
 
-  // sisa kondisi = sebelum waktu (ignore) atau bolong
   return { status: 0, jam: "-" };
 };
 
+//fungsi list attendansi
 export default function AttendanceList({ openModal }: { openModal: (data: any) => void }) {
   const { students, classesConfig } = useStore();
   const [searchQuery, setSearchQuery] = useState("");
@@ -73,6 +72,7 @@ export default function AttendanceList({ openModal }: { openModal: (data: any) =
   return (
     <div className="flex flex-col w-full h-full">
       
+      {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 pb-4 border-b border-zinc-800/80 gap-4">
         <h3 className="text-[clamp(1.4rem,5vw,2.4rem)] font-semibold text-white tracking-tight">
 
@@ -102,60 +102,71 @@ export default function AttendanceList({ openModal }: { openModal: (data: any) =
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5 auto-rows-max">
-                {group.students.map((student, idx) => (
-                  <motion.div key={student.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }} className="w-full">
-                    <Hover3DCard maxTilt={8} className="rounded-2xl bg-[#09090b]/80 border border-white/10 p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_10px_20px_rgba(0,0,0,0.5)] flex flex-col gap-4">
-                      
-                      <div className="relative z-10 flex flex-col">
-                        <h4 className="text-xl font-extrabold text-zinc-100 tracking-tight drop-shadow-sm">
+                {group.students.map((student, idx) => {
+                  
+                  const bgImage = CARD_TEMPLATES[student.Kartu]?.H || "/London1H.png";
 
-                          {student.name}
-                        </h4>
-                        <div className="mt-1.5 flex">
-                          <span className="px-2 py-0.5 rounded-md bg-zinc-800 border border-zinc-700 text-xs text-zinc-300 font-medium">
+                  return (
+                    <motion.div key={student.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: idx * 0.05 }} className="w-full">
+                      <Hover3DCard maxTilt={8} className="rounded-2xl border border-white/10 p-5 shadow-[inset_0_1px_1px_rgba(255,255,255,0.05),0_10px_20px_rgba(0,0,0,0.5)] flex flex-col gap-4 relative overflow-hidden group">
+                        
+                        {/* memanggil gambar latar kartu custom dari array */}
+                        <div 
+                          className="absolute inset-0 bg-cover bg-center z-0 opacity-40 transition-transform duration-700" 
+                          style={{ backgroundImage: `url(${bgImage})` }} 
+                        />
+                        <div className="absolute inset-0 bg-linear-to-t from-[#09090b] via-[#09090b]/80 to-[#09090b]/50 z-0" />
+                        
+                        <div className="relative z-10 flex flex-col">
+                          <h4 className="text-xl font-extrabold text-zinc-100 tracking-tight drop-shadow-sm">
 
-                            {student.kelas}
-                          </span>
+                            {student.name}
+                          </h4>
+                          <div className="mt-1.5 flex">
+                            <span className="px-2 py-0.5 rounded-md bg-zinc-800/80 backdrop-blur-sm border border-zinc-600 text-xs text-zinc-200 font-medium">
+
+                              {student.kelas}
+                            </span>
+                          </div>
                         </div>
-                      </div>
 
-                      <div className="relative z-10 flex flex-row flex-wrap gap-2.5 mt-2">
-                        {group.config.schedules.map((sched, sIdx) => {
-                          
-                          // bongkar scan anak hari ini & evaluasi berdasar jam kelas
-                          const scansToday = student.attendedClasses.Data.filter(a => a.tanggal === todayStr);
-                          const result = evaluateAttendanceForSlot(scansToday, sched.timeFrom, sched.timeTo);
-                          
-                          const limitMins = parseTimeToMinutes(sched.timeTo);
-                          const isLocked = (result.status === 0) && (currentMins > limitMins);
+                        <div className="relative z-10 flex flex-row flex-wrap gap-2.5 mt-2">
+                          {group.config.schedules.map((sched, sIdx) => {
+                            
+                            const scansToday = student.attendedClasses.Data.filter(a => a.tanggal === todayStr);
+                            const result = evaluateAttendanceForSlot(scansToday, sched.timeFrom, sched.timeTo);
+                            
+                            const limitMins = parseTimeToMinutes(sched.timeTo);
+                            const isLocked = (result.status === 0) && (currentMins > limitMins);
 
-                          const boxStyle = result.status === 2
-                            ? "bg-emerald-500/20 border-emerald-500/50 shadow-[inset_0_0_8px_rgba(16,185,129,0.3)]" 
-                            : (result.status === 1 || isLocked)
-                            ? "bg-red-500/20 border-red-500/50 shadow-[inset_0_0_8px_rgba(239,68,68,0.3)] opacity-80" 
-                            : "bg-zinc-800/40 border-zinc-700/50";
-                          
-                          const titleColor = result.status === 2 ? "text-emerald-400" : (result.status === 1 || isLocked) ? "text-red-400" : "text-zinc-400";
-                          const valueColor = result.status === 2 ? "text-emerald-100" : (result.status === 1 || isLocked) ? "text-red-200" : "text-zinc-500";
+                            const boxStyle = result.status === 2
+                              ? "bg-emerald-500/20 border-emerald-500/50 shadow-[inset_0_0_8px_rgba(16,185,129,0.3)]" 
+                              : (result.status === 1 || isLocked)
+                              ? "bg-red-500/20 border-red-500/50 shadow-[inset_0_0_8px_rgba(239,68,68,0.3)] opacity-80" 
+                              : "bg-zinc-800/40 border-zinc-700/50";
+                            
+                            const titleColor = result.status === 2 ? "text-emerald-400" : (result.status === 1 || isLocked) ? "text-red-400" : "text-zinc-400";
+                            const valueColor = result.status === 2 ? "text-emerald-100" : (result.status === 1 || isLocked) ? "text-red-200" : "text-zinc-500";
 
-                          return (
-                            <div key={sIdx} className={`flex-1 min-w-17.5 flex flex-col items-center justify-center py-2 px-2 rounded-xl border transition-all ${boxStyle}`}>
-                              <span className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${titleColor}`}>
+                            return (
+                              <div key={sIdx} className={`flex-1 min-w-17.5 flex flex-col items-center justify-center py-2 px-2 rounded-xl border transition-all ${boxStyle}`}>
+                                <span className={`text-[10px] font-bold uppercase tracking-widest mb-1 ${titleColor}`}>
 
-                                {sched.timeTo}
-                              </span>
-                              <span className={`text-sm font-extrabold font-mono ${valueColor}`}>
+                                  {sched.timeTo}
+                                </span>
+                                <span className={`text-sm font-extrabold font-mono ${valueColor}`}>
 
-                                {result.jam}
-                              </span>
-                            </div>
-                          );
-                        })}
-                      </div>
+                                  {result.jam}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
 
-                    </Hover3DCard>
-                  </motion.div>
-                ))}
+                      </Hover3DCard>
+                    </motion.div>
+                  )
+                })}
               </div>
             </div>
           ))

@@ -26,13 +26,16 @@ function InlineCalendarTimePicker({ onSave, onCancel }: { onSave: (date: string,
   const firstDayOfMonth = new Date(viewYear, viewMonth, 1).getDay();
   const emptySlots = Array.from({ length: firstDayOfMonth }, (_, i) => i);
 
+  // fungsi alert custom dari store
+  const showAlert = useStore((state) => state.showAlert);
+
   const handleConfirm = () => {
-    if (!selectedDate) return alert("Pilih tanggal terlebih dahulu!");
-    if (!selectedTimeFrom) return alert("Masukkan jam buka (From)!");
-    if (!selectedTimeTo) return alert("Masukkan jam tutup (To)!");
+    if (!selectedDate) return showAlert("Select a date first!");
+    if (!selectedTimeFrom) return showAlert("Enter FROM time!");
+    if (!selectedTimeTo) return showAlert("Enter TO time!");
     
     // validasi bentrok to > from
-    if (selectedTimeFrom > selectedTimeTo) return alert("Jam From tidak boleh lebih besar dari jam To!");
+    if (selectedTimeFrom > selectedTimeTo) return showAlert("FROM can not be greater than TO!");
     
     onSave(selectedDate, selectedTimeFrom, selectedTimeTo);
   };
@@ -211,7 +214,7 @@ function InlineCalendarTimePicker({ onSave, onCancel }: { onSave: (date: string,
 
 // modal kelola kelas dan anggotanya
 export function ModalAddClass({ data, closeModal }: { data: any; closeModal: () => void }) {
-  const { students, saveNewClass, deleteClass } = useStore();
+  const { students, saveNewClass, deleteClass, showAlert } = useStore();
   const isEdit = data.isEdit || false;
   const [className, setClassName] = useState(data.oldClassName || "");
   
@@ -253,7 +256,9 @@ export function ModalAddClass({ data, closeModal }: { data: any; closeModal: () 
   const removeSchedule = (idxToRemove: number) => setSchedules(schedules.filter((_, idx) => idx !== idxToRemove));
 
   const handleSave = () => {
-    if (!className.trim()) return alert("Class name cannot be empty!");
+    // memanggil custom alert saat box nama kosong
+    if (!className.trim()) return showAlert("Class name cannot be empty!");
+    
     const selectedIds = selectedStudents.map((s) => s.id);
     saveNewClass(data.oldClassName, className, selectedIds, schedules); 
     closeModal();

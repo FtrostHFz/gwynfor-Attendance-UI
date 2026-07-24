@@ -7,11 +7,17 @@ import StudentList, { ModalProfilSiswa } from "./Components/StudentList";
 import AttendanceList from "./Components/AttendanceList";
 import ClassGroup, { ModalAddClass } from "./Components/Class"; 
 import { ModalAddStudent } from "./Components/StudentList";
+import { useStore } from "./Components/Variables";
+import Devices from "./Components/Devices";
 
 export default function Home() {
   const [tabID, setTabID] = useState(1); 
   const [modalData, setModalData] = useState<any | null>(null);
   
+  // hook pemanggil global alert
+  const alertData = useStore((state) => state.alertData);
+  const hideAlert = useStore((state) => state.hideAlert);
+
   const openModal = (data: any) => setModalData(data);
   const closeModal = () => setModalData(null);
 
@@ -24,8 +30,39 @@ export default function Home() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#09090b] text-zinc-200 p-3 font-sans">
+    <div className="min-h-screen bg-linear-to-tl from-[hsl(277,87%,3%)] to-[rgb(32,1,32)] text-zinc-200 p-3 font-sans relative">
       
+      {/* layer popup alert custom ditaruh di paling atas */}
+      <AnimatePresence>
+        {alertData && (
+          <motion.div
+            initial={{ opacity: 0, y: -50, x: "-50%" }}
+            animate={{ opacity: 1, y: 0, x: "-50%" }}
+            exit={{ opacity: 0, y: -50, x: "-50%" }}
+            className="fixed top-8 left-1/2 z-[100] min-w-[300px] px-5 py-3 rounded-2xl bg-red-950/80 backdrop-blur-xl border border-red-500/50 shadow-[0_10px_40px_rgba(239,68,68,0.4)] flex items-center justify-between gap-4"
+          >
+            <div className="flex items-center gap-3">
+              <span className="text-xl">
+
+                ⚠️
+              </span>
+              <span className="text-red-200 font-medium text-sm">
+
+                {alertData.message}
+              </span>
+            </div>
+            <button
+              onClick={() => hideAlert(alertData.id)}
+              className="text-red-400 hover:text-white transition-colors"
+            >
+
+              ✕
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* modal area */}
       <AnimatePresence>
         {modalData && (
           <motion.div 
@@ -69,7 +106,7 @@ export default function Home() {
       </header>
 
       <nav className="flex justify-center mb-8 relative z-10 w-full px-4">
-        <div className="flex flex-wrap items-center justify-center p-1.5 gap-2 rounded-full bg-zinc-900/60 backdrop-blur-xl border border-white/10 shadow-[0_8px_32px_rgba(0,0,0,0.5)] relative">
+        <div className="flex flex-wrap items-center justify-center p-1.5 gap-2 rounded-full bg-linear-350 from-fuchsia-1000 to-fuchsia-900 backdrop-blur-xl border border-white/15 shadow-[0_8px_32px_rgba(0,0,0,0.5)] relative">
           {NAV_TABS.map((tab) => (
             <button
               key={tab.id}
@@ -81,7 +118,7 @@ export default function Home() {
               {tabID === tab.id && (
                 <motion.div
                   layoutId="active-nav-tab"
-                  className="absolute inset-0 bg-zinc-800/90 rounded-full border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_0_15px_rgba(168,85,247,0.15)] -z-10"
+                  className="absolute inset-0 bg-linear-350 from-fuchsia-1000 to-fuchsia-600 rounded-full border border-white/20 shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_0_15px_rgba(168,85,247,0.15)] -z-10"
                   initial={false}
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
                 />
@@ -96,12 +133,12 @@ export default function Home() {
       </nav>
 
       <main className="w-full mx-auto">
-        <div className="relative rounded-4xl p-0.5 bg-linear-to-br from-violet-500 via-fuchsia-500 to-cyan-500 shadow-[0_0_40px_-10px_rgba(168,85,247,0.25)]">
-          <div className="bg-[#09090b] rounded-[calc(2rem-2px)] p-6 sm:p-10 min-h-[60vh]">
+        <div className="relative rounded-4xl p-px bg-linear-to-tl from-violet-800/40 via-fuchsia-500/30 to-cyan-500/30 shadow-[0_0_40px_-10px_rgba(168,85,247,0.25)]">
+          <div className="bg-linear-350 from-[hsl(277,87%,3%)] to-[rgb(29,0,29)] rounded-[calc(2rem-2px)] p-6 sm:p-10 min-h-[60vh]">
             {tabID === 1 && <StudentList openModal={openModal} />}
             {tabID === 2 && <ClassGroup openModal={openModal} />}
             {tabID === 3 && <AttendanceList openModal={openModal} />}
-            {tabID === 4 && <StudentList openModal={openModal} />}
+            {tabID === 4 && <Devices />}
           </div>
         </div>
       </main>
